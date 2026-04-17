@@ -1,0 +1,1305 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMDES – Sistem Informasi Desa</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <script>
+tailwind.config={theme:{extend:{colors:{primary:{50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b'},accent:{50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6'}},fontFamily:{sans:['Plus Jakarta Sans','sans-serif']}}}}
+</script>
+  <style>
+*{font-family:'Plus Jakarta Sans',sans-serif;margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#f1f5f9}
+::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:3px}
+.page{display:none}.page.active{display:flex;height:100%}
+.sidebar-item{transition:all .2s}
+.sidebar-item:hover,.sidebar-item.active{background:rgba(255,255,255,.15);border-radius:8px}
+.card-stat{transition:transform .2s,box-shadow .2s}
+.card-stat:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.1)}
+.fade-in{animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.btn-primary{background:linear-gradient(135deg,#059669,#10b981);transition:all .2s}
+.btn-primary:hover{box-shadow:0 4px 15px rgba(16,185,129,.4)}
+.login-bg{background:linear-gradient(135deg,#064e3b 0%,#047857 40%,#059669 70%,#10b981 100%);position:relative;overflow:hidden}
+.login-bg::before{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,rgba(16,185,129,.15),transparent);pointer-events:none}
+.mountain-svg{position:absolute;bottom:0;left:0;right:0;opacity:.08}
+.chart-bar{transition:height .6s ease;border-radius:4px 4px 0 0}
+.table-row:hover{background:#f0fdf4}
+.modal-overlay{background:rgba(0,0,0,.4);backdrop-filter:blur(4px)}
+.toast{animation:slideIn .3s ease,fadeOut .3s ease 2.7s}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+.mobile-overlay{display:none}
+@media(max-width:768px){.sidebar-desktop{transform:translateX(-100%);position:fixed;z-index:50;transition:transform .3s}.sidebar-desktop.open{transform:translateX(0)}.mobile-overlay.active{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40}}
+</style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-gray-50">
+  <!-- LOGIN PAGE -->
+  <div id="page-login" class="page active login-bg w-full" style="height:100%">
+   <svg class="mountain-svg" viewbox="0 0 1440 320"><path fill="#fff" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,218.7C672,235,768,245,864,234.7C960,224,1056,192,1152,181.3C1248,171,1344,181,1392,186.7L1440,192L1440,320L0,320Z" />
+   </svg>
+   <div class="flex items-center justify-center w-full h-full p-4 relative z-10">
+    <div class="bg-white/95 backdrop-blur rounded-2xl shadow-2xl w-full max-w-md p-8 fade-in">
+     <!-- Logo -->
+     <div class="text-center mb-6">
+      <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-white flex items-center justify-center shadow-lg overflow-hidden">
+       <img src="https://iili.io/BUijUns.png" alt="Logo SIMDES" class="w-16 h-16 object-contain">
+      </div>
+      <h1 id="login-title" class="text-2xl font-bold text-gray-800">SIMDES</h1>
+      <p class="text-sm text-gray-500 mt-1">Sistem Informasi Desa</p>
+      <p id="login-village" class="text-xs text-primary-600 font-medium mt-1">Desa Kertasari, Kec. Pangkalan, Kab. Karawang</p>
+     </div>
+     <form id="login-form" class="space-y-4">
+      <div>
+       <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+       <div class="relative">
+        <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i> <input id="login-user" type="text" placeholder="Masukkan username" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" value="admin">
+       </div>
+      </div>
+      <div>
+       <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+       <div class="relative">
+        <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i> <input id="login-pass" type="password" placeholder="Masukkan password" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" value="admin">
+       </div>
+      </div>
+      <div>
+       <label class="block text-sm font-medium text-gray-700 mb-1">Login Sebagai</label> <select id="login-role" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"> <option value="admin">Admin Desa</option> <option value="rt">Ketua RT</option> </select>
+      </div><button type="submit" class="w-full btn-primary text-white py-2.5 rounded-lg font-semibold text-sm">Masuk</button>
+     </form>
+     <p class="text-center text-xs text-gray-400 mt-6">© 2025 SIMDES Desa Kertasari</p>
+    </div>
+   </div>
+  </div><!-- MAIN APP -->
+  <div id="page-app" class="page w-full" style="height:100%">
+   <!-- Mobile overlay -->
+   <div id="mobile-overlay" class="mobile-overlay" onclick="toggleSidebar()"></div><!-- Sidebar -->
+   <aside id="sidebar" class="sidebar-desktop w-64 bg-gradient-to-b from-primary-900 via-primary-800 to-primary-700 text-white flex-shrink-0 flex flex-col" style="height:100%">
+    <div class="p-5 border-b border-white/10">
+     <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center overflow-hidden">
+       <img src="https://iili.io/BUijUns.png" alt="Logo SIMDES" class="w-full h-full object-contain">
+      </div>
+      <div>
+       <h2 class="font-bold text-sm">SIMDES</h2>
+       <p id="sidebar-village" class="text-[10px] text-primary-200">Desa Kertasari</p>
+      </div>
+     </div>
+    </div>
+    <nav class="flex-1 p-3 space-y-1 overflow-auto">
+     <div class="text-[10px] uppercase tracking-wider text-primary-300 px-3 py-2 font-semibold">
+      Menu Utama
+     </div><button onclick="navigate('dashboard')" class="sidebar-item active flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</button>
+     <div class="text-[10px] uppercase tracking-wider text-primary-300 px-3 py-2 mt-3 font-semibold">
+      Data Kependudukan
+     </div><button onclick="navigate('penduduk')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="penduduk"><i data-lucide="users" class="w-4 h-4"></i>Penduduk</button> <button onclick="navigate('pendatang')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="pendatang"><i data-lucide="user-plus" class="w-4 h-4"></i>Pendatang</button> <button onclick="navigate('pindah')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="pindah"><i data-lucide="truck" class="w-4 h-4"></i>Pindah</button> <button onclick="navigate('meninggal')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="meninggal"><i data-lucide="heart" class="w-4 h-4"></i>Meninggal</button>
+     <div class="text-[10px] uppercase tracking-wider text-primary-300 px-3 py-2 mt-3 font-semibold">
+      Lainnya
+     </div><button onclick="navigate('kk')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="kk"><i data-lucide="file-text" class="w-4 h-4"></i>Kartu Keluarga</button> <button onclick="navigate('users')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium admin-only" data-nav="users"><i data-lucide="shield" class="w-4 h-4"></i>User</button>
+    </nav>
+    <div class="p-3 border-t border-white/10">
+     <button onclick="logout()" class="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium text-primary-200 hover:text-white transition"><i data-lucide="log-out" class="w-4 h-4"></i>Keluar</button>
+    </div>
+   </aside><!-- Main content -->
+   <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-100 px-4 md:px-6 py-3 flex items-center justify-between flex-shrink-0">
+     <div class="flex items-center gap-3">
+      <button onclick="toggleSidebar()" class="md:hidden p-1.5 rounded-lg hover:bg-gray-100"><i data-lucide="menu" class="w-5 h-5 text-gray-600"></i></button>
+      <div>
+       <h1 id="page-title" class="text-lg font-bold text-gray-800">Dashboard</h1>
+       <p id="page-subtitle" class="text-xs text-gray-400">Selamat datang kembali</p>
+      </div>
+     </div>
+     <div class="flex items-center gap-3">
+      <button class="relative p-2 rounded-lg hover:bg-gray-100"><i data-lucide="bell" class="w-4 h-4 text-gray-500"></i><span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span></button>
+      <div class="flex items-center gap-2 pl-3 border-l border-gray-200">
+       <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center"><i data-lucide="user" class="w-4 h-4 text-primary-600"></i>
+       </div>
+       <div class="hidden sm:block">
+        <p id="header-user" class="text-sm font-semibold text-gray-700">Admin</p>
+        <p id="header-role" class="text-[10px] text-gray-400">Administrator</p>
+       </div>
+      </div>
+     </div>
+    </header><!-- Content area -->
+    <main id="content-area" class="flex-1 overflow-auto p-4 md:p-6 bg-gray-50/80">
+     <!-- DASHBOARD VIEW -->
+     <div id="view-dashboard" class="view fade-in">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+       <div class="card-stat bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+         <div class="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center"><i data-lucide="users" class="w-5 h-5 text-primary-600"></i>
+         </div><span class="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full"></span>
+        </div>
+        <p class="text-2xl font-bold text-gray-800">0</p>
+        <p class="text-xs text-gray-400 mt-1">Jumlah Penduduk</p>
+       </div>
+       <div class="card-stat bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center"><i data-lucide="user-plus" class="w-5 h-5 text-blue-500"></i>
+         </div><span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full"></span>
+        </div>
+        <p class="text-2xl font-bold text-gray-800">0</p>
+        <p class="text-xs text-gray-400 mt-1">Pendatang</p>
+       </div>
+       <div class="card-stat bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+         <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center"><i data-lucide="truck" class="w-5 h-5 text-amber-500"></i>
+         </div><span class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full"></span>
+        </div>
+        <p class="text-2xl font-bold text-gray-800">0</p>
+        <p class="text-xs text-gray-400 mt-1">Pindah</p>
+       </div>
+       <div class="card-stat bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+         <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center"><i data-lucide="heart" class="w-5 h-5 text-red-400"></i>
+         </div><span class="text-xs font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full"></span>
+        </div>
+        <p class="text-2xl font-bold text-gray-800">0</p>
+        <p class="text-xs text-gray-400 mt-1">Meninggal</p>
+       </div>
+      </div><!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+       <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+        <h3 class="font-semibold text-gray-700 text-sm mb-4">Statistik Penduduk 2026</h3>
+        <div class="flex items-end gap-2 h-40" id="chart-bars">
+         <div class="flex-1 flex flex-col items-center gap-1">
+          <div class="chart-bar w-full bg-primary-400" style="height:0%"></div><span class="text-[10px] text-gray-400">Jan</span>
+         </div>
+         <div class="flex-1 flex flex-col items-center gap-1">
+          <div class="chart-bar w-full bg-primary-400" style="height:0%"></div><span class="text-[10px] text-gray-400">Feb</span>
+         </div>
+         <div class="flex-1 flex flex-col items-center gap-1">
+          <div class="chart-bar w-full bg-primary-400" style="height:0%"></div><span class="text-[10px] text-gray-400">Mar</span>
+         </div>
+         <div class="flex-1 flex flex-col items-center gap-1">
+          <div class="chart-bar w-full bg-primary-400" style="height:0%"></div><span class="text-[10px] text-gray-400">Apr</span>
+         </div>
+         <div class="flex-1 flex flex-col items-center gap-1">
+          <div class="chart-bar w-full bg-primary-500" style="height:0%"></div><span class="text-[10px] text-gray-400">Mei</span>
+         </div>
+         <div class="flex-1 flex flex-col items-center gap-1">
+          <div class="chart-bar w-full bg-primary-300" style="height:0%"></div><span class="text-[10px] text-gray-400">Jun</span>
+         </div>
+        </div>
+       </div>
+       <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+        <h3 class="font-semibold text-gray-700 text-sm mb-4">Komposisi Penduduk</h3>
+        <div class="space-y-3">
+         <div>
+          <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Laki-laki</span><span class="font-semibold text-gray-700">0 (0%)</span>
+          </div>
+          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+           <div class="h-full bg-accent-500 rounded-full" style="width:0%"></div>
+          </div>
+         </div>
+         <div>
+          <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Perempuan</span><span class="font-semibold text-gray-700">0 (0%)</span>
+          </div>
+          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+           <div class="h-full bg-primary-400 rounded-full" style="width:0%"></div>
+          </div>
+         </div>
+         <div>
+          <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Usia Produktif</span><span class="font-semibold text-gray-700">0 (0%)</span>
+          </div>
+          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+           <div class="h-full bg-amber-400 rounded-full" style="width:0%"></div>
+          </div>
+         </div>
+         <div>
+          <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Anak-anak</span><span class="font-semibold text-gray-700">0 (0%)</span>
+          </div>
+          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+           <div class="h-full bg-purple-400 rounded-full" style="width:0%"></div>
+          </div>
+         </div>
+         <div>
+          <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Lansia</span><span class="font-semibold text-gray-700">0 (0%)</span>
+          </div>
+          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+           <div class="h-full bg-red-400 rounded-full" style="width:0%"></div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div><!-- RT Stats for RT role -->
+      <div id="rt-stats" class="hidden grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+       <div data-rt="01" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 01</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="02" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 02</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="03" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 03</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="04" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 04</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="05" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 05</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="06" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 06</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="07" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 07</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="08" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 08</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="09" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 09</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="10" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 10</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="011" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 011</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="012" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 012</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="013" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 013</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="014" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 014</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="015" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 015</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+       <div data-rt="016" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 016</p>
+        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
+        <p class="text-xs text-gray-400">Penduduk</p>
+       </div>
+      </div><!-- Recent activity -->
+      <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+       <h3 class="font-semibold text-gray-700 text-sm mb-3">Aktivitas Terbaru</h3>
+       <div id="activity-list" class="space-y-3"></div>
+      </div>
+     </div><!-- PENDUDUK VIEW -->
+     <div id="view-penduduk" class="view hidden fade-in"></div><!-- PENDATANG VIEW -->
+     <div id="view-pendatang" class="view hidden fade-in"></div><!-- PINDAH VIEW -->
+     <div id="view-pindah" class="view hidden fade-in"></div><!-- MENINGGAL VIEW -->
+     <div id="view-meninggal" class="view hidden fade-in"></div><!-- KK VIEW -->
+     <div id="view-kk" class="view hidden fade-in"></div><!-- USERS VIEW -->
+     <div id="view-users" class="view hidden fade-in"></div>
+    </main>
+   </div>
+  </div><!-- MODAL -->
+  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay p-4" style="display:none">
+   <div id="modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90%] overflow-auto fade-in"></div>
+  </div><!-- TOAST -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[60] space-y-2"></div>
+  <script>
+// STATE
+let currentRole='admin', currentView='dashboard', sidebarOpen=false;
+
+// DUMMY DATA
+const pendudukData=[];
+
+const pendatangData=[];
+
+const pindahData=[];
+
+const meninggalData=[];
+
+const activityData=[];
+
+function formatRelativeTime(ts){
+ const diff=Math.floor((Date.now()-ts)/1000);
+ if(diff<60) return 'Baru saja';
+ if(diff<3600) return `${Math.floor(diff/60)} menit yang lalu`;
+ if(diff<86400) return `${Math.floor(diff/3600)} jam yang lalu`;
+ return `${Math.floor(diff/86400)} hari yang lalu`;
+}
+
+function renderRecentActivity(){
+ const list=document.getElementById('activity-list');
+ if(!list) return;
+ if(activityData.length===0){
+  list.innerHTML=`<div class="py-6 text-center text-sm text-gray-400">Belum ada aktivitas terbaru.</div>`;
+  return;
+ }
+ list.innerHTML=activityData.slice(0,5).map(item=>`
+  <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+   <div class="w-8 h-8 rounded-full bg-${item.color}-50 flex items-center justify-center flex-shrink-0"><i data-lucide="${item.icon}" class="w-3.5 h-3.5 text-${item.color}-500"></i></div>
+   <div class="flex-1 min-w-0">
+    <p class="text-sm text-gray-700 truncate">${item.title}</p>
+    <p class="text-[10px] text-gray-400">${formatRelativeTime(item.timestamp)}</p>
+   </div>
+  </div>`).join('');
+ lucide.createIcons();
+}
+
+function addActivity(title,icon='activity',color='primary'){
+ activityData.unshift({title,icon,color,timestamp:Date.now()});
+ if(activityData.length>10) activityData.length=10;
+ if(currentView==='dashboard') renderRecentActivity();
+}
+
+// KK DIHITUNG OTOMATIS DARI PENDUDUK DAN PENDATANG
+function generateKKData(){
+const kkMap=new Map();
+const activeNIK=new Set();
+
+// Tandai NIK yang masih aktif (tidak pindah/meninggal)
+const pindahNIK=pindahData.map(p=>p.nik);
+const meninggalNIK=meninggalData.map(m=>m.nik);
+
+pendudukData.forEach(p=>{
+if(!pindahNIK.includes(p.nik)&&!meninggalNIK.includes(p.nik)){
+activeNIK.add(p.nik);
+}
+});
+
+pendatangData.forEach(p=>{
+if(!pindahNIK.includes(p.nik)&&!meninggalNIK.includes(p.nik)){
+activeNIK.add(p.nik);
+}
+});
+
+// Buat KK dari data aktif
+[...pendudukData,...pendatangData].forEach(person=>{
+if(!activeNIK.has(person.nik))return;
+const kkNo=person.noKK;
+if(!kkMap.has(kkNo)){
+kkMap.set(kkNo,{noKK:kkNo,kepala:person.nama,alamat:person.alamat,rt:person.rt,rw:person.rw,anggota:[]});
+}
+kkMap.get(kkNo).anggota.push(person);
+});
+
+return Array.from(kkMap.values()).map(kk=>({...kk,jml:kk.anggota.length}));
+}
+
+// SYNC DATA: Pendatang masuk ke penduduk, pindah/meninggal keluar dari penduduk
+function syncData(){
+// Konversi pendatang ke penduduk
+pendatangData.forEach(p=>{
+if(!pendudukData.find(pd=>pd.nik===p.nik)){
+pendudukData.push({
+nik:p.nik,
+nama:p.nama,
+tempat_lahir:p.tempat_lahir,
+tgl_lahir:p.tgl_lahir,
+bln_lahir:p.bln_lahir,
+thn_lahir:p.thn_lahir,
+alamat:'(Belum diisi)',
+rt:p.rt,
+rw:p.rw||'01',
+jk:'L',
+status:'Belum Kawin',
+agama:'Islam',
+pekerjaan:'',
+noKK:p.noKK,
+familyMembers:[]
+});
+}
+});
+
+// Hapus pindah dari penduduk
+pindahData.forEach(p=>{
+const idx=pendudukData.findIndex(pd=>pd.nik===p.nik);
+if(idx!==-1) pendudukData.splice(idx,1);
+});
+
+// Hapus meninggal dari penduduk
+meninggalData.forEach(m=>{
+const idx=pendudukData.findIndex(pd=>pd.nik===m.nik);
+if(idx!==-1) pendudukData.splice(idx,1);
+});
+}
+
+const usersData=[
+{username:'admin',nama:'Administrator',role:'Admin Desa',status:'Aktif'},
+{username:'rt01',nama:'Nana Supriatna',role:'Ketua RT 01',status:'Aktif'},
+{username:'rt02',nama:'Awang Awangsih',role:'Ketua RT 02',status:'Aktif'},
+{username:'rt03',nama:'Surdin',role:'Ketua RT 03',status:'Aktif'},
+{username:'rt04',nama:'Hasan',role:'Ketua RT 04',status:'Aktif'},
+{username:'rt05',nama:'Suryana',role:'Ketua RT 05',status:'Aktif'},
+{username:'rt06',nama:'Ucep',role:'Ketua RT 06',status:'Aktif'},
+{username:'rt07',nama:'Eneng Siti Rohmah',role:'Ketua RT 07',status:'Aktif'},
+{username:'rt08',nama:'Dasa',role:'Ketua RT 08',status:'Aktif'},
+{username:'rt09',nama:'Emad',role:'Ketua RT 09',status:'Aktif'},
+{username:'rt10',nama:'Sarmin',role:'Ketua RT 010',status:'Aktif'},
+{username:'rt11',nama:'Dede Risman Saepulloh',role:'Ketua RT 011',status:'Aktif'},
+{username:'rt12',nama:'Edi Setia Budi',role:'Ketua RT 012',status:'Aktif'},
+{username:'rt13',nama:'Dayat',role:'Ketua RT 013',status:'Aktif'},
+{username:'rt14',nama:'Nerwin',role:'Ketua RT 014',status:'Aktif'},
+{username:'rt15',nama:'Hendar Ridwan',role:'Ketua RT 015',status:'Aktif'},
+{username:'rt16',nama:'Tini Kartini',role:'Ketua RT 016',status:'Aktif'}
+];
+
+// LOGIN
+document.getElementById('login-form').addEventListener('submit',function(e){
+e.preventDefault();
+const role=document.getElementById('login-role').value;
+currentRole=role;
+document.getElementById('page-login').classList.remove('active');
+document.getElementById('page-app').classList.add('active');
+document.getElementById('header-user').textContent = role==='admin' ? 'Admin Desa' : 'Ketua RT';
+document.getElementById('header-role').textContent = role==='admin' ? 'Administrator' : 'RT';
+if(role==='rt'){
+document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
+document.getElementById('rt-stats').classList.remove('hidden');
+}else{
+document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
+document.getElementById('rt-stats').classList.add('hidden');
+}
+navigate('dashboard');
+lucide.createIcons();
+});
+
+function logout(){
+document.getElementById('page-app').classList.remove('active');
+document.getElementById('page-login').classList.add('active');
+currentView='dashboard';
+}
+
+function toggleSidebar(){
+const sb=document.getElementById('sidebar');
+const ov=document.getElementById('mobile-overlay');
+sidebarOpen=!sidebarOpen;
+sb.classList.toggle('open',sidebarOpen);
+ov.classList.toggle('active',sidebarOpen);
+}
+
+// UPDATE DASHBOARD STATS
+function updateDashboardStats(){
+syncData();
+const totalPenduduk=pendudukData.length;
+const totalPendatang=pendatangData.length;
+const totalPindah=pindahData.length;
+const totalMeninggal=meninggalData.length;
+
+// Update stat cards
+const stats=[
+{id:0,value:totalPenduduk,color:'primary'},
+{id:1,value:totalPendatang,color:'blue'},
+{id:2,value:totalPindah,color:'amber'},
+{id:3,value:totalMeninggal,color:'red'}
+];
+document.querySelectorAll('.card-stat').forEach((card,i)=>{
+if(i<4){
+const stat=stats[i];
+card.querySelector('p:first-of-type').textContent=stat.value.toLocaleString('id-ID');
+}
+});
+
+// Update charts and composition
+updateChartsAndComposition();
+updateRtStats();
+renderRecentActivity();
+}
+
+function updateRtStats(){
+ const rtCounts={};
+ ['01','02','03','04','05','06','07','08','09','10','011','012','013','014','015','016'].forEach(rt=>{rtCounts[rt]=0;});
+ pendudukData.forEach(p=>{if(p.rt){const key=p.rt.toString().padStart(2,'0');if(rtCounts[key]!==undefined) rtCounts[key]++;}});
+ document.querySelectorAll('#rt-stats [data-rt]').forEach(card=>{
+  const rt=card.dataset.rt;
+  const count=rtCounts[rt]||0;
+  const countEl=card.querySelector('.rt-count');
+  if(countEl) countEl.textContent=count.toLocaleString('id-ID');
+ });
+}
+
+function updateChartsAndComposition(){
+const totalPenduduk=pendudukData.length;
+const laki=pendudukData.filter(p=>p.jk==='L').length;
+const perempuan=pendudukData.filter(p=>p.jk==='P').length;
+const usiaProd=pendudukData.filter(p=>{
+const thn=parseInt(p.thn_lahir)||2000;
+const usia=2025-thn;
+return usia>=15&&usia<=64;
+}).length;
+const anak=pendudukData.filter(p=>{
+const thn=parseInt(p.thn_lahir)||2000;
+const usia=2025-thn;
+return usia<15;
+}).length;
+const lansia=pendudukData.filter(p=>{
+const thn=parseInt(p.thn_lahir)||2000;
+const usia=2025-thn;
+return usia>64;
+}).length;
+
+// Calculate percentages
+const lakiPct=totalPenduduk>0?(laki/totalPenduduk*100).toFixed(1):0;
+const perempuanPct=totalPenduduk>0?(perempuan/totalPenduduk*100).toFixed(1):0;
+const usiaProdPct=totalPenduduk>0?(usiaProd/totalPenduduk*100).toFixed(1):0;
+const anakPct=totalPenduduk>0?(anak/totalPenduduk*100).toFixed(1):0;
+const lansiaPct=totalPenduduk>0?(lansia/totalPenduduk*100).toFixed(1):0;
+
+const compositions=[
+{label:'Laki-laki',count:laki,pct:lakiPct,color:'accent-500'},
+{label:'Perempuan',count:perempuan,pct:perempuanPct,color:'primary-400'},
+{label:'Usia Produktif',count:usiaProd,pct:usiaProdPct,color:'amber-400'},
+{label:'Anak-anak',count:anak,pct:anakPct,color:'purple-400'},
+{label:'Lansia',count:lansia,pct:lansiaPct,color:'red-400'}
+];
+
+// Update all composition bars
+document.querySelectorAll('[id="view-dashboard"] .space-y-3 > div').forEach((row,i)=>{
+if(compositions[i]){
+const comp=compositions[i];
+const countSpan=row.querySelector('.flex.justify-between span:last-child');
+if(countSpan) countSpan.textContent=`${comp.count} (${comp.pct}%)`;
+const bar=row.querySelector('.h-full');
+if(bar){
+bar.style.width=comp.pct+'%';
+}
+}
+});
+}
+
+// NAVIGATION
+function navigate(view){
+currentView=view;
+document.querySelectorAll('.sidebar-item').forEach(el=>{el.classList.toggle('active',el.dataset.nav===view)});
+document.querySelectorAll('.view').forEach(el=>el.classList.add('hidden'));
+const titles={dashboard:'Dashboard',penduduk:'Data Penduduk',pendatang:'Data Pendatang',pindah:'Data Pindah',meninggal:'Data Meninggal',kk:'Kartu Keluarga',users:'Manajemen User'};
+const subtitles={dashboard:'Selamat datang kembali',penduduk:'Kelola data penduduk desa',pendatang:'Data warga pendatang',pindah:'Data warga pindah',meninggal:'Data warga meninggal',kk:'Data kartu keluarga',users:'Kelola akun pengguna'};
+document.getElementById('page-title').textContent=titles[view]||'Dashboard';
+document.getElementById('page-subtitle').textContent=subtitles[view]||'';
+// Render view
+if(view==='penduduk') renderPenduduk();
+else if(view==='pendatang') renderCategory('pendatang',pendatangData,'blue',['NIK','Nama','Tempat Lahir','Tgl Lahir','Asal','Tgl Datang','RT'],r=>`<td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium">${r.nama}</td><td class="px-3 py-2.5 text-xs">${r.tempat_lahir}</td><td class="px-3 py-2.5 text-xs">${r.tgl_lahir}/${r.bln_lahir}/${r.thn_lahir}</td><td class="px-3 py-2.5 text-xs">${r.asal}</td><td class="px-3 py-2.5 text-xs">${r.tglDatang}</td><td class="px-3 py-2.5"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">RT ${r.rt}</span></td>`);
+else if(view==='pindah') renderCategory('pindah',pindahData,'amber',['NIK','Nama','Tempat Lahir','Tgl Lahir','Tujuan','Tgl Pindah','RT'],r=>`<td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium">${r.nama}</td><td class="px-3 py-2.5 text-xs">${r.tempat_lahir}</td><td class="px-3 py-2.5 text-xs">${r.tgl_lahir}/${r.bln_lahir}/${r.thn_lahir}</td><td class="px-3 py-2.5 text-xs">${r.tujuan}</td><td class="px-3 py-2.5 text-xs">${r.tglPindah}</td><td class="px-3 py-2.5"><span class="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">RT ${r.rt}</span></td>`);
+else if(view==='meninggal') renderCategory('meninggal',meninggalData,'red',['NIK','Nama','Tempat Lahir','Tgl Lahir','Tgl Meninggal','Usia','Sebab'],r=>`<td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium">${r.nama}</td><td class="px-3 py-2.5 text-xs">${r.tempat_lahir}</td><td class="px-3 py-2.5 text-xs">${r.tgl_lahir}/${r.bln_lahir}/${r.thn_lahir}</td><td class="px-3 py-2.5 text-xs">${r.tglMeninggal}</td><td class="px-3 py-2.5 text-xs">${r.usia} th</td><td class="px-3 py-2.5 text-xs">${r.sebab}</td>`);
+else if(view==='kk') renderKK();
+else if(view==='users') renderUsers();
+document.getElementById('view-'+view).classList.remove('hidden');
+if(view==='dashboard') updateDashboardStats();
+if(sidebarOpen) toggleSidebar();
+lucide.createIcons();
+}
+
+// RENDER PENDUDUK
+function renderPenduduk(){
+const v=document.getElementById('view-penduduk');
+v.innerHTML=`
+<div class="flex flex-col sm:flex-row gap-3 mb-4">
+<div class="relative flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i><input id="search-penduduk" type="text" placeholder="Cari nama atau NIK..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" oninput="filterPenduduk()"></div>
+<select id="filter-rt" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" onchange="filterPenduduk()"><option value="">Semua RT</option><option>01</option><option>02</option><option>03</option><option>04</option>RT05</option><option>06</option><option>07</option><option>08</option><option>09</option>RT010</option><option>011</option><option>012</option><option>013</option><option>014</option><option>015</option><option>016</option></option></select>
+<button onclick="showFormPenduduk()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 justify-center"><i data-lucide="plus" class="w-4 h-4"></i>Tambah</button>
+</div>
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+<div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100"><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NIK</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Alamat</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">RT</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Status</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody id="tbody-penduduk"></tbody></table></div>
+</div>`;
+filterPenduduk();
+}
+
+function filterPenduduk(){
+const s=(document.getElementById('search-penduduk')?.value||'').toLowerCase();
+const rt=document.getElementById('filter-rt')?.value||'';
+const filtered=pendudukData.filter(r=>{
+const matchSearch=r.nama.toLowerCase().includes(s)||r.nik.includes(s);
+const matchRT=!rt||r.rt===rt;
+return matchSearch&&matchRT;
+});
+const tbody=document.getElementById('tbody-penduduk');
+if(!tbody)return;
+tbody.innerHTML=filtered.map(r=>{
+const idx=pendudukData.findIndex(pd=>pd.nik===r.nik);
+return `<tr class="table-row border-b border-gray-50"><td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium text-gray-800">${r.nama}${r.isKepalaKeluarga?'<span class="ml-2 text-[10px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-medium">Kepala KK</span>':''}</td><td class="px-3 py-2.5 text-xs text-gray-500 hidden md:table-cell">${r.alamat||'-'}</td><td class="px-3 py-2.5"><span class="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">RT ${r.rt||'-'}</span></td><td class="px-3 py-2.5 text-xs hidden sm:table-cell">${r.status||'-'}</td><td class="px-3 py-2.5"><div class="flex gap-1"><button onclick="showFormPenduduk('${r.nik}')" class="p-2 rounded-lg hover:bg-blue-100 bg-blue-50 text-blue-600 hover:text-blue-700 transition font-medium flex items-center gap-1.5" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i><span class="text-xs hidden sm:inline">Edit</span></button><button onclick="confirmDelete('penduduk','${r.nik}')" class="p-2 rounded-lg hover:bg-red-100 text-red-500 hover:text-red-600 transition" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></td></tr>`;
+}).join('');
+lucide.createIcons();
+}
+
+// RENDER CATEGORY TABLES
+function renderCategory(id,data,color,headers,rowFn){
+const icons={pendatang:'user-plus',pindah:'truck',meninggal:'heart'};
+const labels={pendatang:'Pendatang',pindah:'Pindah',meninggal:'Meninggal'};
+const v=document.getElementById('view-'+id);
+v.innerHTML=`
+<div class="flex flex-col sm:flex-row gap-3 mb-4">
+<div class="relative flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i><input id="search-${id}" type="text" placeholder="Cari data..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-${color}-500 outline-none" oninput="filterCategory('${id}')"></div>
+<button onclick="showFormGeneric('${id}')" class="bg-${color}-500 hover:bg-${color}-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 justify-center transition"><i data-lucide="plus" class="w-4 h-4"></i>Tambah ${labels[id]}</button>
+</div>
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+<div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100">${headers.map(h=>`<th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">${h}</th>`).join('')}<th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody>${data.map((r,i)=>`<tr class="table-row border-b border-gray-50">${rowFn(r)}<td class="px-3 py-2.5"><div class="flex gap-1"><button onclick="showFormGeneric('${id}',${i})" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button><button onclick="confirmDelete('${id}',${i})" class="p-1.5 rounded-lg hover:bg-red-50 text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div></td></tr>`).join('')}</tbody></table></div>
+</div>`;
+lucide.createIcons();
+}
+
+function filterCategory(type){
+const q=(document.getElementById('search-'+type)?.value||'').toLowerCase();
+const rows=document.querySelectorAll('#view-'+type+' tbody tr');
+rows.forEach(row=>{
+row.style.display=row.textContent.toLowerCase().includes(q)?'':'none';
+});
+}
+
+function renderKK(){
+const kkData=generateKKData();
+const v=document.getElementById('view-kk');
+v.innerHTML=`
+<div class="flex flex-col sm:flex-row gap-3 mb-4">
+<div class="relative flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i><input id="search-kk" type="text" placeholder="Cari No. KK atau kepala keluarga..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" oninput="filterKK()"></div>
+<button onclick="showFormKK()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 justify-center"><i data-lucide="plus" class="w-4 h-4"></i>Tambah KK</button>
+</div>
+<div class="grid gap-3" id="kk-list">${kkData.map(k=>`
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden kk-card" data-kk-no="${k.noKK}" data-kk-kepala="${k.kepala}">
+<div class="p-4 flex flex-col sm:flex-row sm:items-center gap-3 border-b border-gray-100">
+<div class="w-12 h-12 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0"><i data-lucide="file-text" class="w-6 h-6 text-primary-600"></i></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold text-gray-800">${k.kepala}</p>
+<p class="text-xs text-gray-400 font-mono">No. KK: ${k.noKK}</p>
+<p class="text-xs text-gray-500 mt-0.5">${k.alamat} • RT ${k.rt}/RW ${k.rw}</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full font-medium">${k.jml} Anggota</span>
+<button onclick="showKKDetail('${k.noKK}')" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+<button onclick="confirmDeleteKK('${k.noKK}','${k.kepala}')" class="p-1.5 rounded-lg hover:bg-red-50 text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+</div>
+</div>
+<div id="kk-detail-${k.noKK}" class="hidden">
+<div class="px-4 py-3 space-y-2 bg-gray-50">
+${k.anggota.map(a=>`
+<div class="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-100">
+<div class="w-9 h-9 rounded-full bg-accent-50 flex items-center justify-center flex-shrink-0">
+<i data-lucide="user" class="w-4 h-4 text-accent-500"></i>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-medium text-gray-800">${a.nama}</p>
+<p class="text-[10px] text-gray-400">${a.nik}</p>
+</div>
+<span class="text-[10px] font-medium ${a.jk==='L'?'bg-blue-50 text-blue-600':'bg-pink-50 text-pink-600'} px-2 py-1 rounded-full">${a.jk==='L'?'Laki-laki':'Perempuan'}</span>
+</div>
+`).join('')}
+</div>
+</div>
+`).join('')}</div>`;
+lucide.createIcons();
+}
+
+function filterKK(){
+const s=(document.getElementById('search-kk')?.value||'').toLowerCase();
+const cards=document.querySelectorAll('.kk-card');
+cards.forEach(card=>{
+const noKK=card.dataset.kkNo.toLowerCase();
+const kepala=card.dataset.kkKepala.toLowerCase();
+const matchSearch=noKK.includes(s)||kepala.includes(s);
+card.style.display=matchSearch?'':'none';
+});
+}
+
+function showFormKK(){
+openModal(`
+<div class="p-6 max-h-[85vh] overflow-y-auto">
+<h2 class="text-lg font-bold text-gray-800 mb-4">Tambah Kartu Keluarga</h2>
+<form id="form-kk" class="space-y-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div><label class="block text-xs font-medium text-gray-600 mb-1">No. KK</label><input name="noKK" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="16 digit No. KK"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Nama Kepala Keluarga</label><input name="kepala" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Alamat</label><input name="alamat" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option>01</option><option>02</option><option>03</option><option>04</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input name="rw" value="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK Kepala</label><input name="nik" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="date" name="tgl_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Jenis Kelamin</label><select name="jk" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option>Belum Kawin</option><option>Kawin</option><option>Cerai</option></select></div>
+</div>
+<div class="flex gap-2 pt-3">
+<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
+<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
+</div>
+</form>
+</div>`);
+lucide.createIcons();
+document.getElementById('form-kk').addEventListener('submit',function(e){
+e.preventDefault();
+const obj=Object.fromEntries(new FormData(this));
+pendudukData.push({
+nik:obj.nik,
+nama:obj.kepala,
+tempat_lahir:'',
+tgl_lahir:obj.tgl_lahir||'',
+bln_lahir:'',
+thn_lahir:'',
+alamat:obj.alamat||'',
+rt:obj.rt||'01',
+rw:obj.rw||'01',
+jk:obj.jk||'L',
+status:obj.status||'Belum Kawin',
+agama:'Islam',
+pekerjaan:'',
+noKK:obj.noKK||'',
+isKepalaKeluarga:true,
+familyMembers:[]
+});
+closeModal();
+showToast('KK berhasil ditambahkan','success');
+navigate('kk');
+updateDashboardStats();
+});
+}
+
+function showFormUser(idx){
+const isEdit=idx!==undefined;
+const user=isEdit?usersData[idx]:{username:'',nama:'',role:'Admin Desa',status:'Aktif'};
+openModal(`
+<div class="p-6 max-h-[85vh] overflow-y-auto">
+<h2 class="text-lg font-bold text-gray-800 mb-4">${isEdit?'Edit':'Tambah'} User</h2>
+<form id="form-user" class="space-y-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Username</label><input name="username" value="${user.username||''}" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${user.nama||''}" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Role</label><select name="role" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Admin Desa" ${user.role==='Admin Desa'?'selected':''}>Admin Desa</option><option value="Ketua RT 01" ${user.role==='Ketua RT 01'?'selected':''}>Ketua RT 01</option><option value="Ketua RT 02" ${user.role==='Ketua RT 02'?'selected':''}>Ketua RT 02</option><option value="Ketua RT 03" ${user.role==='Ketua RT 03'?'selected':''}>Ketua RT 03</option><option value="Ketua RT 04" ${user.role==='Ketua RT 04'?'selected':''}>Ketua RT 04</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Aktif" ${user.status==='Aktif'?'selected':''}>Aktif</option><option value="Non-aktif" ${user.status==='Non-aktif'?'selected':''}>Non-aktif</option></select></div>
+</div>
+<div class="flex gap-2 pt-3">
+<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
+<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
+</div>
+</form>
+</div>`);
+lucide.createIcons();
+document.getElementById('form-user').addEventListener('submit',function(e){
+e.preventDefault();
+const payload=Object.fromEntries(new FormData(this));
+if(isEdit){
+Object.assign(usersData[idx],payload);
+showToast('User berhasil diperbarui','success');
+}else{
+usersData.push(payload);
+showToast('User berhasil ditambahkan','success');
+}
+closeModal();
+navigate('users');
+});
+}
+
+function showKKDetail(noKK){
+const detail=document.getElementById('kk-detail-'+noKK);
+detail.classList.toggle('hidden');
+}
+
+function confirmDeleteKK(noKK,kepala){
+openModal(`
+<div class="p-6 text-center">
+<div class="w-14 h-14 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center"><i data-lucide="alert-triangle" class="w-7 h-7 text-red-500"></i></div>
+<h3 class="text-lg font-bold text-gray-800 mb-2">Hapus Kartu Keluarga?</h3>
+<p class="text-sm text-gray-500 mb-2">Nomor KK: <span class="font-mono font-semibold">${noKK}</span></p>
+<p class="text-sm text-gray-500 mb-5">Kepala Keluarga: <span class="font-semibold">${kepala}</span></p>
+<p class="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg mb-5">Data anggota keluarga akan dipindahkan ke status pendatang.</p>
+<div class="flex gap-2">
+<button onclick="doDeleteKK('${noKK}')" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-semibold transition">Ya, Hapus</button>
+<button onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium transition">Batal</button>
+</div>
+</div>`);
+lucide.createIcons();
+}
+
+function doDeleteKK(noKK){
+// Hapus anggota keluarga dari penduduk
+const kkPenduduk=pendudukData.filter(p=>p.noKK===noKK);
+kkPenduduk.forEach(p=>{
+const idx=pendudukData.findIndex(pd=>pd.nik===p.nik);
+if(idx!==-1) pendudukData.splice(idx,1);
+});
+
+// Hapus anggota keluarga dari pendatang
+const kkPendatang=pendatangData.filter(p=>p.noKK===noKK);
+kkPendatang.forEach(p=>{
+const idx=pendatangData.findIndex(pd=>pd.nik===p.nik);
+if(idx!==-1) pendatangData.splice(idx,1);
+});
+
+closeModal();
+showToast('Kartu Keluarga berhasil dihapus','success');
+navigate('kk');
+updateDashboardStats();
+}
+
+function renderUsers(){
+const v=document.getElementById('view-users');
+v.innerHTML=`
+<div class="flex justify-end mb-4"><button onclick="showFormUser()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i>Tambah User</button></div>
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+<div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100"><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Username</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Role</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Status</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody>${usersData.map((u,i)=>`<tr class="table-row border-b border-gray-50"><td class="px-3 py-2.5 text-xs font-mono">${u.username}</td><td class="px-3 py-2.5 text-xs font-medium">${u.nama}</td><td class="px-3 py-2.5 text-xs">${u.role}</td><td class="px-3 py-2.5"><span class="text-xs px-2 py-0.5 rounded-full font-medium ${u.status==='Aktif'?'bg-green-50 text-green-600':'bg-gray-100 text-gray-500'}">${u.status}</span></td><td class="px-3 py-2.5"><div class="flex gap-1"><button onclick="showFormUser(${i})" class="p-2 rounded-lg hover:bg-blue-100 bg-blue-50 text-blue-600 hover:text-blue-700 transition font-medium flex items-center gap-1.5" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i><span class="text-xs hidden sm:inline">Edit</span></button><button onclick="confirmDeleteUser(${i})" class="admin-only p-2 rounded-lg hover:bg-red-100 text-red-500 hover:text-red-600 transition flex items-center gap-1.5" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i><span class="text-xs hidden sm:inline">Hapus</span></button></div></td></tr>`).join('')}</tbody></table></div>
+</div>`;
+lucide.createIcons();
+}
+
+function showFormUser(idx){
+const isEdit=idx!==undefined;
+const user=isEdit?usersData[idx]:{username:'',nama:'',role:'Admin Desa',status:'Aktif'};
+openModal(`
+<div class="p-6 max-h-[85vh] overflow-y-auto">
+<h2 class="text-lg font-bold text-gray-800 mb-4">${isEdit?'Edit':'Tambah'} User</h2>
+<form id="form-user" class="space-y-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Username</label><input name="username" value="${user.username||''}" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${user.nama||''}" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Role</label><select name="role" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Admin Desa" ${user.role==='Admin Desa'?'selected':''}>Admin Desa</option><option value="Ketua RT 01" ${user.role==='Ketua RT 01'?'selected':''}>Ketua RT 01</option><option value="Ketua RT 02" ${user.role==='Ketua RT 02'?'selected':''}>Ketua RT 02</option><option value="Ketua RT 03" ${user.role==='Ketua RT 03'?'selected':''}>Ketua RT 03</option><option value="Ketua RT 04" ${user.role==='Ketua RT 04'?'selected':''}>Ketua RT 04</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Aktif" ${user.status==='Aktif'?'selected':''}>Aktif</option><option value="Non-aktif" ${user.status==='Non-aktif'?'selected':''}>Non-aktif</option></select></div>
+</div>
+<div class="flex gap-2 pt-3">
+<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
+<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
+</div>
+</form>
+</div>`);
+lucide.createIcons();
+document.getElementById('form-user').addEventListener('submit',function(e){
+e.preventDefault();
+const payload=Object.fromEntries(new FormData(this));
+if(isEdit){
+Object.assign(usersData[idx],payload);
+showToast('User berhasil diperbarui','success');
+}else{
+usersData.push(payload);
+showToast('User berhasil ditambahkan','success');
+}
+closeModal();
+navigate('users');
+});
+}
+
+function confirmDeleteUser(idx){
+ if(currentRole !== 'admin'){
+ showToast('Akses hanya untuk admin','error');
+ return;
+ }
+ const user = usersData[idx] || {};
+ openModal(`
+ <div class="p-6 text-center">
+ <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center"><i data-lucide="alert-triangle" class="w-7 h-7 text-red-500"></i></div>
+ <h3 class="text-lg font-bold text-gray-800 mb-2">Hapus User?</h3>
+ <p class="text-sm text-gray-500 mb-2">Username: <span class="font-mono font-semibold">${user.username||'-'}</span></p>
+ <p class="text-sm text-gray-500 mb-5">Nama: <span class="font-semibold">${user.nama||'-'}</span></p>
+ <div class="flex gap-2">
+ <button onclick="doDeleteUser(${idx})" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-semibold transition">Ya, Hapus</button>
+ <button onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium transition">Batal</button>
+ </div>
+ </div>`);
+ lucide.createIcons();
+}
+
+function doDeleteUser(idx){
+ if(currentRole !== 'admin'){
+ showToast('Akses hanya untuk admin','error');
+ closeModal();
+ return;
+ }
+ if(typeof idx === 'number' && idx >= 0 && idx < usersData.length){
+ usersData.splice(idx,1);
+ }
+ closeModal();
+ showToast('User berhasil dihapus','success');
+ syncData();
+ navigate('users');
+}
+
+function showFormKK(){
+openModal(`
+<div class="p-6 max-h-[85vh] overflow-y-auto">
+<h2 class="text-lg font-bold text-gray-800 mb-4">Tambah Kartu Keluarga</h2>
+<form id="form-kk" class="space-y-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div><label class="block text-xs font-medium text-gray-600 mb-1">No. KK</label><input name="noKK" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Nama Kepala Keluarga</label><input name="kepala" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK Kepala</label><input name="nik" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Alamat</label><input name="alamat" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input name="rw" value="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Jenis Kelamin</label><select name="jk" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Belum Kawin">Belum Kawin</option><option value="Kawin">Kawin</option><option value="Cerai">Cerai</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Agama</label><input name="agama" value="Islam" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="date" name="tgl_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+</div>
+<div class="flex gap-2 pt-3">
+<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
+<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
+</div>
+</form>
+</div>`);
+lucide.createIcons();
+document.getElementById('form-kk').addEventListener('submit',function(e){
+e.preventDefault();
+const obj=Object.fromEntries(new FormData(this));
+pendudukData.push({
+nik:obj.nik,
+nama:obj.kepala,
+tempat_lahir:obj.tempat_lahir||'',
+tgl_lahir:obj.tgl_lahir||'',
+bln_lahir:obj.bln_lahir||'01',
+thn_lahir:obj.thn_lahir||'2000',
+alamat:obj.alamat||'',
+rt:obj.rt||'01',
+rw:obj.rw||'01',
+jk:obj.jk||'L',
+status:obj.status||'Belum Kawin',
+agama:obj.agama||'Islam',
+pekerjaan:'',
+noKK:obj.noKK,
+isKepalaKeluarga:true,
+familyMembers:[]
+});
+closeModal();
+showToast('Kartu Keluarga berhasil dibuat','success');
+navigate('kk');
+updateDashboardStats();
+});
+}
+
+// FORMS
+function showFormPenduduk(nik){
+const idx=nik?pendudukData.findIndex(p=>p.nik===nik):-1;
+const isEdit=idx!==-1;
+const r=isEdit?pendudukData[idx]:{};
+const familyMembers=r.familyMembers||[];
+openModal(`
+<div class="p-6 max-h-[85vh] overflow-y-auto">
+<h2 class="text-lg font-bold text-gray-800 mb-4">${isEdit?'Edit':'Tambah'} Data Penduduk</h2>
+<form id="form-penduduk" class="space-y-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="16 digit NIK"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Nama Lengkap</label><input name="nama" value="${r.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="date" name="tgl_lahir" value="${r.tgl_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Alamat</label><input name="alamat" value="${r.alamat||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option ${r.rt==='01'?'selected':''}>01</option><option ${r.rt==='02'?'selected':''}>02</option><option ${r.rt==='03'?'selected':''}>03</option><option ${r.rt==='04'?'selected':''}>04</option><option ${r.rt==='05'?'selected':''}>05</option><option ${r.rt==='06'?'selected':''}>06</option><option ${r.rt==='07'?'selected':''}>07</option><option ${r.rt==='08'?'selected':''}>08</option><option ${r.rt==='09'?'selected':''}>09</option><option ${r.rt==='10'?'selected':''}>10</option><option ${r.rt==='11'?'selected':''}>11</option><option ${r.rt==='12'?'selected':''}>12</option><option ${r.rt==='13'?'selected':''}>13</option><option ${r.rt==='14'?'selected':''}>14</option><option ${r.rt==='15'?'selected':''}>15</option><option ${r.rt==='16'?'selected':''}>16</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input name="rw" value="${r.rw||'01'}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="01"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Jenis Kelamin</label><select name="jk" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="L" ${r.jk==='L'?'selected':''}>Laki-laki</option><option value="P" ${r.jk==='P'?'selected':''}>Perempuan</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option ${r.status==='Belum Kawin'?'selected':''}>Belum Kawin</option><option ${r.status==='Kawin'?'selected':''}>Kawin</option><option ${r.status==='Cerai'?'selected':''}>Cerai</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Agama</label><input name="agama" value="${r.agama||'Islam'}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Pekerjaan</label><input name="pekerjaan" value="${r.pekerjaan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Nomor Kartu Keluarga</label><input name="noKK" value="${r.noKK||''}" placeholder="16 digit No. KK" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div class="sm:col-span-2"><label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="checkbox" name="isKepalaKeluarga" ${r.isKepalaKeluarga?'checked':''} class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"><span>Sebagai Kepala Keluarga</span></label></div>
+</div>
+<div class="border-t pt-4">
+<div class="flex items-center justify-between mb-3">
+<label class="text-sm font-semibold text-gray-700">Anggota Keluarga Lainnya</label>
+<button type="button" onclick="addFamilyMember()" class="text-xs bg-primary-50 text-primary-700 hover:bg-primary-100 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 transition"><i data-lucide="plus" class="w-3 h-3"></i>Tambah</button>
+</div>
+<div id="family-members" class="space-y-2">
+${familyMembers.map((fm,i)=>`
+<div class="p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+<div class="grid grid-cols-2 gap-2">
+<input type="text" value="${fm.nama||''}" placeholder="Nama anggota" onchange="updateFamilyMember(${i},'nama',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<input type="text" value="${fm.nik||''}" placeholder="NIK" onchange="updateFamilyMember(${i},'nik',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+</div>
+<div class="grid grid-cols-2 gap-2">
+<input type="text" value="${fm.tempat_lahir||''}" placeholder="Tempat Lahir" onchange="updateFamilyMember(${i},'tempat_lahir',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<input type="date" value="${fm.tgl_lahir||''}" onchange="updateFamilyMember(${i},'tgl_lahir',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+</div>
+<div class="grid grid-cols-3 gap-2">
+<select onchange="updateFamilyMember(${i},'jk',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<option ${fm.jk==='L'?'selected':''} value="L">Laki-laki</option>
+<option ${fm.jk==='P'?'selected':''} value="P">Perempuan</option>
+</select>
+<select onchange="updateFamilyMember(${i},'status',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<option ${fm.status==='Belum Kawin'?'selected':''}>Belum Kawin</option>
+<option ${fm.status==='Kawin'?'selected':''}>Kawin</option>
+<option ${fm.status==='Cerai'?'selected':''}>Cerai</option>
+</select>
+<button type="button" onclick="removeFamilyMember(${i})" class="text-xs bg-red-50 text-red-600 hover:bg-red-100 rounded font-medium transition"><i data-lucide="trash-2" class="w-3 h-3 mx-auto"></i></button>
+</div>
+</div>
+`).join('')}
+</div>
+</div>
+<div class="flex gap-2 pt-3">
+<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
+<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
+</div>
+</form>
+</div>`);
+lucide.createIcons();
+document.getElementById('form-penduduk').addEventListener('submit',function(e){
+e.preventDefault();
+const fd=new FormData(this);
+const obj=Object.fromEntries(fd);
+obj.isKepalaKeluarga=this.querySelector('input[name="isKepalaKeluarga"]').checked||false;
+const familyNodes=Array.from(document.querySelectorAll('#family-members .family-member'));
+obj.familyMembers=familyNodes.map(el=>({
+nama:el.querySelector('[data-field="nama"]').value||'',
+nik:el.querySelector('[data-field="nik"]').value||'',
+tempat_lahir:el.querySelector('[data-field="tempat_lahir"]').value||'',
+tgl_lahir:el.querySelector('[data-field="tgl_lahir"]').value||'',
+jk:el.querySelector('[data-field="jk"]').value||'L',
+status:el.querySelector('[data-field="status"]').value||'Belum Kawin'
+}));
+if(isEdit){Object.assign(pendudukData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Data penduduk diperbarui', 'user-check', 'primary');}
+else{pendudukData.push(obj);showToast('Data berhasil ditambahkan','success');addActivity('Data penduduk baru ditambahkan', 'user-plus', 'primary');}
+closeModal();
+if(currentView==='dashboard') updateDashboardStats();
+else navigate('penduduk');
+});
+}
+
+function addFamilyMember(){
+const container=document.getElementById('family-members');
+const div=document.createElement('div');
+div.className='family-member p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2';
+div.innerHTML=`
+<div class="grid grid-cols-2 gap-2">
+<input type="text" data-field="nama" placeholder="Nama anggota" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<input type="text" data-field="nik" placeholder="NIK" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+</div>
+<div class="grid grid-cols-2 gap-2">
+<input type="text" data-field="tempat_lahir" placeholder="Tempat Lahir" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<input type="date" data-field="tgl_lahir" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+</div>
+<div class="grid grid-cols-3 gap-2">
+<select data-field="jk" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<option value="L">Laki-laki</option>
+<option value="P">Perempuan</option>
+</select>
+<select data-field="status" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<option>Belum Kawin</option>
+<option>Kawin</option>
+<option>Cerai</option>
+</select>
+<button type="button" onclick="this.closest('.family-member').remove()" class="text-xs bg-red-50 text-red-600 hover:bg-red-100 rounded font-medium transition"><i data-lucide="trash-2" class="w-3 h-3 mx-auto"></i></button>
+</div>
+`;
+container.appendChild(div);
+lucide.createIcons();
+}
+
+function updateFamilyMember(i,field,val){
+if(!window.currentFamilyMembers)window.currentFamilyMembers=[];
+window.currentFamilyMembers[i]=window.currentFamilyMembers[i]||{};
+window.currentFamilyMembers[i][field]=val;
+}
+
+function removeFamilyMember(i){
+document.getElementById('family-members').children[i].remove();
+}
+
+function showFormGeneric(type,idx){
+const isEdit=idx!==undefined;
+const labels={pendatang:'Pendatang',pindah:'Pindah',meninggal:'Meninggal'};
+const r=isEdit?(type==='pendatang'?pendatangData[idx]:type==='pindah'?pindahData[idx]:meninggalData[idx]):null;
+const fields={
+pendatang:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Asal</label><input name="asal" value="${r?.asal||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Datang</label><input type="date" name="tglDatang" value="${r?.tglDatang||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT Tujuan</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option ${r?.rt==='01'?'selected':''}>01</option><option ${r?.rt==='02'?'selected':''}>02</option><option ${r?.rt==='03'?'selected':''}>03</option><option ${r?.rt==='04'?'selected':''}>04</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Nomor Kartu Keluarga</label><input type="text" name="noKK" value="${r?.noKK||''}" placeholder="16 digit No. KK" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Tujuan/Alasan</label><input name="tujuan" value="${r?.tujuan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>`,
+pindah:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tujuan Pindah</label><input name="tujuan" value="${r?.tujuan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Pindah</label><input type="date" name="tglPindah" value="${r?.tglPindah||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT Asal</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option ${r?.rt==='01'?'selected':''}>01</option><option ${r?.rt==='02'?'selected':''}>02</option><option ${r?.rt==='03'?'selected':''}>03</option><option ${r?.rt==='04'?'selected':''}>04</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Alasan</label><input name="alasan" value="${r?.alasan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>`,
+meninggal:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Meninggal</label><input type="date" name="tglMeninggal" value="${r?.tglMeninggal||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Usia</label><input type="number" name="usia" value="${r?.usia||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option ${r?.rt==='01'?'selected':''}>01</option><option ${r?.rt==='02'?'selected':''}>02</option><option ${r?.rt==='03'?'selected':''}>03</option><option ${r?.rt==='04'?'selected':''}>04</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Sebab Meninggal</label><input name="sebab" value="${r?.sebab||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>`
+};
+openModal(`
+<div class="p-6">
+<h2 class="text-lg font-bold text-gray-800 mb-4">${isEdit?'Edit':'Tambah'} Data ${labels[type]}</h2>
+<form id="form-${type}" class="space-y-3">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${fields[type]}</div>
+<div class="flex gap-2 pt-3">
+<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
+<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
+</div>
+</form>
+</div>`);
+lucide.createIcons();
+document.getElementById('form-'+type).addEventListener('submit',function(e){
+e.preventDefault();
+const fd=new FormData(this);
+const obj=Object.fromEntries(fd);
+if(type==='pendatang'){
+if(isEdit){Object.assign(pendatangData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Pendatang diperbarui', 'user-plus', 'blue');}
+else{pendatangData.push(obj);showToast('Data ditambahkan','success');addActivity('Pendatang baru ditambahkan', 'user-plus', 'blue');}
+syncData();
+}else if(type==='pindah'){
+if(isEdit){Object.assign(pindahData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Data pindah diperbarui', 'truck', 'amber');}
+else{pindahData.push(obj);showToast('Data ditambahkan','success');addActivity('Data pindah baru ditambahkan', 'truck', 'amber');}
+syncData();
+}else if(type==='meninggal'){
+if(isEdit){Object.assign(meninggalData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Data meninggal diperbarui', 'heart', 'red');}
+else{meninggalData.push(obj);showToast('Data ditambahkan','success');addActivity('Data meninggal baru ditambahkan', 'heart', 'red');}
+syncData();
+}
+closeModal();
+if(currentView==='dashboard') updateDashboardStats();
+else navigate(type);
+});
+}
+
+// DELETE CONFIRMATION
+function confirmDelete(type,idx){
+openModal(`
+<div class="p-6 text-center">
+<div class="w-14 h-14 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center"><i data-lucide="alert-triangle" class="w-7 h-7 text-red-500"></i></div>
+<h3 class="text-lg font-bold text-gray-800 mb-2">Hapus Data?</h3>
+<p class="text-sm text-gray-500 mb-5">Data yang dihapus tidak dapat dikembalikan.</p>
+<div class="flex gap-2">
+<button onclick="doDelete('${type}',${idx})" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-semibold transition">Ya, Hapus</button>
+<button onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium transition">Batal</button>
+</div>
+</div>`);
+lucide.createIcons();
+}
+
+function doDelete(type,idx){
+let activityMessage='Data dihapus';
+let activityIcon='trash-2';
+let activityColor='primary';
+if(type==='penduduk'){
+const deleteIndex=typeof idx==='string'?pendudukData.findIndex(p=>p.nik===idx):idx;
+if(deleteIndex!==-1) pendudukData.splice(deleteIndex,1);
+activityMessage='Penduduk dihapus';
+activityIcon='users';
+activityColor='primary';
+}else if(type==='pendatang'){
+pendatangData.splice(idx,1);
+activityMessage='Pendatang dihapus';
+activityIcon='user-plus';
+activityColor='blue';
+}else if(type==='pindah'){
+pindahData.splice(idx,1);
+activityMessage='Data pindah dihapus';
+activityIcon='truck';
+activityColor='amber';
+}else if(type==='meninggal'){
+meninggalData.splice(idx,1);
+activityMessage='Data meninggal dihapus';
+activityIcon='heart';
+activityColor='red';
+}else if(type==='users'){
+usersData.splice(idx,1);
+activityMessage='User dihapus';
+activityIcon='shield-alert';
+activityColor='primary';
+}
+syncData();
+closeModal();
+addActivity(activityMessage, activityIcon, activityColor);
+showToast('Data berhasil dihapus','success');
+if(currentView==='dashboard') updateDashboardStats();
+else navigate(type);
+}
+
+// MODAL
+function openModal(html){
+const m=document.getElementById('modal');
+document.getElementById('modal-content').innerHTML=html;
+m.style.display='flex';lucide.createIcons();
+}
+function closeModal(){document.getElementById('modal').style.display='none';}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// TOAST
+function showToast(msg,type){
+const c=document.getElementById('toast-container');
+const t=document.createElement('div');
+const colors={success:'bg-primary-600',error:'bg-red-500',info:'bg-accent-500'};
+t.className=`toast ${colors[type]||colors.info} text-white px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2`;
+t.innerHTML=`<i data-lucide="${type==='success'?'check-circle':type==='error'?'x-circle':'info'}" class="w-4 h-4"></i>${msg}`;
+c.appendChild(t);lucide.createIcons();
+setTimeout(()=>t.remove(),3000);
+}
+
+setInterval(()=>{if(currentView==='dashboard') renderRecentActivity();},15000);
+
+// ELEMENT SDK
+const defaultConfig={
+village_name:'Desa Kertasari',
+district_name:'Kecamatan Pangkalan',
+regency_name:'Kabupaten Karawang',
+background_color:'#f8fafc',
+surface_color:'#ffffff',
+text_color:'#1e293b',
+primary_color:'#059669',
+accent_color:'#3b82f6',
+font_family:'Plus Jakarta Sans',
+font_size:14
+};
+
+function applyConfig(config){
+const bg=config.background_color||defaultConfig.background_color;
+const surface=config.surface_color||defaultConfig.surface_color;
+const text=config.text_color||defaultConfig.text_color;
+const primary=config.primary_color||defaultConfig.primary_color;
+const accent=config.accent_color||defaultConfig.accent_color;
+const font=config.font_family||defaultConfig.font_family;
+const size=config.font_size||defaultConfig.font_size;
+const village=config.village_name||defaultConfig.village_name;
+const district=config.district_name||defaultConfig.district_name;
+const regency=config.regency_name||defaultConfig.regency_name;
+
+document.querySelector('main').style.background=bg;
+document.querySelectorAll('.card-stat,.bg-white').forEach(el=>el.style.backgroundColor=surface);
+document.body.style.color=text;
+document.body.style.fontFamily=font+', sans-serif';
+document.body.style.fontSize=size+'px';
+
+const loginVillage=document.getElementById('login-village');
+if(loginVillage) loginVillage.textContent=`${village}, ${district}, ${regency}`;
+const sidebarVillage=document.getElementById('sidebar-village');
+if(sidebarVillage) sidebarVillage.textContent=village;
+}
+
+if(window.elementSdk){
+window.elementSdk.init({
+defaultConfig,
+onConfigChange:async(config)=>applyConfig(config),
+mapToCapabilities:(config)=>({
+recolorables:[
+{get:()=>config.background_color||defaultConfig.background_color,set:v=>{config.background_color=v;window.elementSdk.setConfig({background_color:v})}},
+{get:()=>config.surface_color||defaultConfig.surface_color,set:v=>{config.surface_color=v;window.elementSdk.setConfig({surface_color:v})}},
+{get:()=>config.text_color||defaultConfig.text_color,set:v=>{config.text_color=v;window.elementSdk.setConfig({text_color:v})}},
+{get:()=>config.primary_color||defaultConfig.primary_color,set:v=>{config.primary_color=v;window.elementSdk.setConfig({primary_color:v})}},
+{get:()=>config.accent_color||defaultConfig.accent_color,set:v=>{config.accent_color=v;window.elementSdk.setConfig({accent_color:v})}},
+],
+borderables:[],
+fontEditable:{get:()=>config.font_family||defaultConfig.font_family,set:v=>{config.font_family=v;window.elementSdk.setConfig({font_family:v})}},
+fontSizeable:{get:()=>config.font_size||defaultConfig.font_size,set:v=>{config.font_size=v;window.elementSdk.setConfig({font_size:v})}}
+}),
+mapToEditPanelValues:(config)=>new Map([
+['village_name',config.village_name||defaultConfig.village_name],
+['district_name',config.district_name||defaultConfig.district_name],
+['regency_name',config.regency_name||defaultConfig.regency_name],
+])
+});
+}
+
+// INIT
+lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9edb171a40b9fd07',t:'MTc3NjQyNTM0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
