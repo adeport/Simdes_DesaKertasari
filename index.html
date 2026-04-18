@@ -6,6 +6,7 @@
   <title>SIMDES – Sistem Informasi Desa</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
   <script src="/_sdk/element_sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <script>
@@ -475,6 +476,11 @@ jk:'L',
 status:'Belum Kawin',
 agama:'Islam',
 pekerjaan:'',
+hamil:'Tidak',
+penyakit:'',
+stunting:'Tidak',
+anak_bekerja:'Tidak',
+sekolah:'Tidak Sekolah',
 noKK:p.noKK,
 familyMembers:[]
 });
@@ -694,7 +700,7 @@ v.innerHTML=`
 <button onclick="showFormPenduduk()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 justify-center"><i data-lucide="plus" class="w-4 h-4"></i>Tambah</button>
 </div>
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-<div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100"><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NIK</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Alamat</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">RT</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Lansia</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Status</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody id="tbody-penduduk"></tbody></table></div>
+<div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100"><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NIK</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Alamat</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">RT</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Lansia</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Status</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Hamil</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Penyakit</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Stunting</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Anak Kerja</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Sekolah</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody id="tbody-penduduk"></tbody></table></div>
 </div>`;
 filterPenduduk();
 }
@@ -711,7 +717,7 @@ const tbody=document.getElementById('tbody-penduduk');
 if(!tbody)return;
 tbody.innerHTML=filtered.map(r=>{
 const idx=pendudukData.findIndex(pd=>pd.nik===r.nik);
-return `<tr class="table-row border-b border-gray-50"><td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium text-gray-800">${r.nama}${r.isKepalaKeluarga?'<span class="ml-2 text-[10px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-medium">Kepala KK</span>':''}</td><td class="px-3 py-2.5 text-xs text-gray-500 hidden md:table-cell">${r.alamat||'-'}</td><td class="px-3 py-2.5"><span class="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">RT ${r.rt||'-'}</span></td><td class="px-3 py-2.5 text-xs hidden sm:table-cell">${r.lansia?'Ya':'Tidak'}</td><td class="px-3 py-2.5 text-xs hidden sm:table-cell">${r.status||'-'}</td><td class="px-3 py-2.5"><div class="flex gap-1"><button onclick="showFormPenduduk('${r.nik}')" class="p-2 rounded-lg hover:bg-blue-100 bg-blue-50 text-blue-600 hover:text-blue-700 transition font-medium flex items-center gap-1.5" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i><span class="text-xs hidden sm:inline">Edit</span></button><button onclick="confirmDelete('penduduk','${r.nik}')" class="p-2 rounded-lg hover:bg-red-100 text-red-500 hover:text-red-600 transition" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></td></tr>`;
+return `<tr class="table-row border-b border-gray-50"><td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium text-gray-800">${r.nama}${r.isKepalaKeluarga?'<span class="ml-2 text-[10px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-medium">Kepala KK</span>':''}</td><td class="px-3 py-2.5 text-xs text-gray-500 hidden md:table-cell">${r.alamat||'-'}</td><td class="px-3 py-2.5"><span class="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">RT ${r.rt||'-'}</span></td><td class="px-3 py-2.5 text-xs hidden sm:table-cell">${r.lansia?'Ya':'Tidak'}</td><td class="px-3 py-2.5 text-xs hidden sm:table-cell">${r.status||'-'}</td><td class="px-3 py-2.5 text-xs hidden md:table-cell">${r.hamil||'Tidak'}</td><td class="px-3 py-2.5 text-xs hidden md:table-cell">${r.penyakit? r.penyakit : '-'}</td><td class="px-3 py-2.5 text-xs hidden md:table-cell">${r.stunting||'Tidak'}</td><td class="px-3 py-2.5 text-xs hidden md:table-cell">${r.anak_bekerja||'Tidak'}</td><td class="px-3 py-2.5 text-xs hidden md:table-cell">${r.sekolah||'-'}</td><td class="px-3 py-2.5"><div class="flex gap-1"><button onclick="showFormPenduduk('${r.nik}')" class="p-2 rounded-lg hover:bg-blue-100 bg-blue-50 text-blue-600 hover:text-blue-700 transition font-medium flex items-center gap-1.5" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i><span class="text-xs hidden sm:inline">Edit</span></button><button onclick="confirmDelete('penduduk','${r.nik}')" class="p-2 rounded-lg hover:bg-red-100 text-red-500 hover:text-red-600 transition" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></td></tr>`;
 }).join('');
 lucide.createIcons();
 }
@@ -771,10 +777,17 @@ ${k.anggota.map(a=>`
 <i data-lucide="user" class="w-4 h-4 text-accent-500"></i>
 </div>
 <div class="flex-1 min-w-0">
-<p class="text-xs font-medium text-gray-800">${a.nama}</p>
+<p class="text-xs font-semibold text-gray-800">${a.nama}</p>
 <p class="text-[10px] text-gray-400">${a.nik}</p>
+<p class="text-[10px] text-gray-500">${a.status||'-'} • ${a.jk==='L'?'Laki-laki':'Perempuan'} • ${a.usia?`${a.usia} th`:'-'} ${a.pekerjaan?`• ${a.pekerjaan}`:''}</p>
+<div class="mt-2 grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+<span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Hamil: ${a.hamil||'Tidak'}</span>
+<span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Penyakit: ${a.penyakit? a.penyakit : 'Tidak'}</span>
+<span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Stunting: ${a.stunting||'Tidak'}</span>
+<span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Anak Kerja: ${a.anak_bekerja||'Tidak'}</span>
+<span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Sekolah: ${a.sekolah||'-'}</span>
 </div>
-<span class="text-[10px] font-medium ${a.jk==='L'?'bg-blue-50 text-blue-600':'bg-pink-50 text-pink-600'} px-2 py-1 rounded-full">${a.jk==='L'?'Laki-laki':'Perempuan'}</span>
+</div>
 </div>
 `).join('')}
 </div>
@@ -838,6 +851,11 @@ jk:obj.jk||'L',
 status:obj.status||'Belum Kawin',
 agama:'Islam',
 pekerjaan:'',
+hamil:'Tidak',
+penyakit:'',
+stunting:'Tidak',
+anak_bekerja:'Tidak',
+sekolah:'Tidak Sekolah',
 noKK:obj.noKK||'',
 isKepalaKeluarga:true,
 familyMembers:[]
@@ -1081,6 +1099,12 @@ openModal(`
 <div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input name="rw" value="${r.rw||'01'}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="01"></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">Jenis Kelamin</label><select name="jk" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="L" ${r.jk==='L'?'selected':''}>Laki-laki</option><option value="P" ${r.jk==='P'?'selected':''}>Perempuan</option></select></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option ${r.status==='Belum Kawin'?'selected':''}>Belum Kawin</option><option ${r.status==='Kawin'?'selected':''}>Kawin</option><option ${r.status==='Cerai'?'selected':''}>Cerai</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Status Hamil</label><select name="hamil" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Tidak" ${r.hamil==='Tidak'?'selected':''}>Tidak</option><option value="Ya" ${r.hamil==='Ya'?'selected':''}>Ya</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Foto Dokumen</label><input id="dokumen-file" type="file" accept="image/*" onchange="handleDocumentFile(event)" class="w-full text-xs text-gray-600 file:border-0 file:bg-primary-50 file:text-primary-700 file:px-3 file:py-2 file:rounded-lg"><p id="dokumen-status" class="text-[10px] text-gray-500 mt-1">Pilih foto KTP atau dokumen untuk otomatis mengisi data.</p></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Penyakit yang Dialami</label><input name="penyakit" value="${r.penyakit||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="Contoh: Diabetes, Asma"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Stunting</label><select name="stunting" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Tidak" ${r.stunting==='Tidak'?'selected':''}>Tidak</option><option value="Ya" ${r.stunting==='Ya'?'selected':''}>Ya</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Anak Bekerja</label><select name="anak_bekerja" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Tidak" ${r.anak_bekerja==='Tidak'?'selected':''}>Tidak</option><option value="Ya" ${r.anak_bekerja==='Ya'?'selected':''}>Ya</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Status Sekolah</label><select name="sekolah" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Tidak Sekolah" ${r.sekolah==='Tidak Sekolah'?'selected':''}>Tidak Sekolah</option><option value="Sedang Sekolah" ${r.sekolah==='Sedang Sekolah'?'selected':''}>Sedang Sekolah</option><option value="Putus Sekolah" ${r.sekolah==='Putus Sekolah'?'selected':''}>Putus Sekolah</option><option value="Lainnya" ${r.sekolah==='Lainnya'?'selected':''}>Lainnya</option></select></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">Agama</label><input name="agama" value="${r.agama||'Islam'}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
 <div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Pekerjaan</label><input name="pekerjaan" value="${r.pekerjaan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
 <div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Nomor Kartu Keluarga</label><input name="noKK" value="${r.noKK||''}" placeholder="16 digit No. KK" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
@@ -1133,6 +1157,12 @@ obj.rt=normalizeRT(obj.rt||'');
 obj.isKepalaKeluarga=this.querySelector('input[name="isKepalaKeluarga"]').checked||false;
 obj.lansia=this.querySelector('input[name="lansia"]').checked||false;
 obj.usia=Number(obj.usia)||0;
+obj.hamil=obj.hamil||'Tidak';
+obj.penyakit=obj.penyakit||'';
+obj.stunting=obj.stunting||'Tidak';
+obj.anak_bekerja=obj.anak_bekerja||'Tidak';
+obj.sekolah=obj.sekolah||'Tidak Sekolah';
+if(obj.dokumen) delete obj.dokumen;
 const familyNodes=Array.from(document.querySelectorAll('#family-members .family-member'));
 obj.familyMembers=familyNodes.map(el=>({
 nama:el.querySelector('[data-field="nama"]').value||'',
@@ -1147,6 +1177,76 @@ else{pendudukData.push(obj);showToast('Data berhasil ditambahkan','success');add
 closeModal();
 refreshCurrentView();
 });
+}
+
+async function handleDocumentFile(event){
+const file=event.target.files[0];
+const status=document.getElementById('dokumen-status');
+if(!file){
+status.textContent='Tidak ada file dipilih';
+return;
+}
+status.textContent='Memindai dokumen... Harap tunggu.';
+try{
+const {data:{text}}=await Tesseract.recognize(file,'ind',{logger:()=>{}});
+status.textContent='Dokumen dipindai, mengisi data...';
+parseDocumentText(text);
+status.textContent='Data berhasil diisi dari dokumen. Mohon cek kembali.';
+}catch(err){
+console.error(err);
+status.textContent='Gagal membaca dokumen. Coba foto lain atau ketik manual.';
+}
+}
+
+function parseDocumentText(text){
+const normalized=text.replace(/\r/g,'\n');
+const nikMatch=normalized.match(/(\d{16})/);
+if(nikMatch) document.querySelector('input[name="nik"]').value=nikMatch[1];
+const namaMatch=normalized.match(/nama(?: lengkap)?[:\s]*([A-Za-z\u00C0-\u017F\.\- ]{3,})/i);
+if(namaMatch) document.querySelector('input[name="nama"]').value=namaMatch[1].trim();
+const tempatMatch=normalized.match(/tempat lahir[:\s]*([A-Za-z\u00C0-\u017F\.\- ]+)/i);
+if(tempatMatch) document.querySelector('input[name="tempat_lahir"]').value=tempatMatch[1].trim();
+const ttlMatch=normalized.match(/tanggal lahir[:\s]*([0-9]{2}[-\/]?[0-9]{2}[-\/]?[0-9]{4})/i);
+if(ttlMatch){
+const date=ttlMatch[1].replace(/\//g,'-');
+const parts=date.split('-');
+if(parts.length===3){
+const formatted=`${parts[2].padStart(4,'0')}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+document.querySelector('input[name="tgl_lahir"]').value=formatted;
+}
+}
+const jkMatch=normalized.match(/\b(laki[- ]?laki|perempuan|pria|wanita)\b/i);
+if(jkMatch){
+const jk=jkMatch[1].toLowerCase().includes('laki')?'L':'P';
+document.querySelector('select[name="jk"]').value=jk;
+}
+const statusMatch=normalized.match(/status[:\s]*(belum kawin|kawin|cerai)/i);
+if(statusMatch) document.querySelector('select[name="status"]').value=statusMatch[1].replace(/\s+/g,' ').trim();
+const rtMatch=normalized.match(/rt[:\s]*([0-9]{1,2})/i);
+if(rtMatch) document.querySelector('select[name="rt"]').value=rtMatch[1].padStart(2,'0');
+const rwMatch=normalized.match(/rw[:\s]*([0-9]{1,2})/i);
+if(rwMatch) document.querySelector('input[name="rw"]').value=rwMatch[1].padStart(2,'0');
+const noKKMatch=normalized.match(/(\d{16})/g);
+if(noKKMatch){
+const noKK=noKKMatch.find(n=>n!==document.querySelector('input[name="nik"]').value);
+if(noKK) document.querySelector('input[name="noKK"]').value=noKK;
+}
+const hamilMatch=normalized.match(/hamil[:\s]*(ya|tidak)/i);
+if(hamilMatch) document.querySelector('select[name="hamil"]').value=hamilMatch[1].toLowerCase()==='ya'?'Ya':'Tidak';
+const penyakitMatch=normalized.match(/penyakit[:\s]*([A-Za-z\u00C0-\u017F0-9\.\- ]+)/i);
+if(penyakitMatch) document.querySelector('input[name="penyakit"]').value=penyakitMatch[1].trim();
+const stuntingMatch=normalized.match(/stunting[:\s]*(ya|tidak)/i);
+if(stuntingMatch) document.querySelector('select[name="stunting"]').value=stuntingMatch[1].toLowerCase()==='ya'?'Ya':'Tidak';
+const anakKerjaMatch=normalized.match(/anak bekerja[:\s]*(ya|tidak)/i);
+if(anakKerjaMatch) document.querySelector('select[name="anak_bekerja"]').value=anakKerjaMatch[1].toLowerCase()==='ya'?'Ya':'Tidak';
+const sekolahMatch=normalized.match(/(sedang sekolah|tidak sekolah|putus sekolah|sekolah[:\s]*[A-Za-z ]+)/i);
+if(sekolahMatch) {
+const schoolValue=sekolahMatch[0].toLowerCase();
+if(schoolValue.includes('sedang')) document.querySelector('select[name="sekolah"]').value='Sedang Sekolah';
+else if(schoolValue.includes('tidak')) document.querySelector('select[name="sekolah"]').value='Tidak Sekolah';
+else if(schoolValue.includes('putus')) document.querySelector('select[name="sekolah"]').value='Putus Sekolah';
+else document.querySelector('select[name="sekolah"]').value='Lainnya';
+}
 }
 
 function addFamilyMember(){
