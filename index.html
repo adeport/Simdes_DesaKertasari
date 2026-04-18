@@ -283,33 +283,33 @@ html,body{height:100%;overflow:hidden}
         <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
         <p class="text-xs text-gray-400">Penduduk</p>
        </div>
-       <div data-rt="011" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 011</p>
+       <div data-rt="11" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 11</p>
         <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
         <p class="text-xs text-gray-400">Penduduk</p>
        </div>
-       <div data-rt="012" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 012</p>
+       <div data-rt="12" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 12</p>
         <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
         <p class="text-xs text-gray-400">Penduduk</p>
        </div>
-       <div data-rt="013" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 013</p>
+       <div data-rt="13" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 13</p>
         <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
         <p class="text-xs text-gray-400">Penduduk</p>
        </div>
-       <div data-rt="014" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 014</p>
+       <div data-rt="14" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 14</p>
         <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
         <p class="text-xs text-gray-400">Penduduk</p>
        </div>
-       <div data-rt="015" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 015</p>
+       <div data-rt="15" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 15</p>
         <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
         <p class="text-xs text-gray-400">Penduduk</p>
        </div>
-       <div data-rt="016" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 016</p>
+       <div data-rt="16" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
+        <p class="text-lg font-bold text-gray-800">RT 16</p>
         <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
         <p class="text-xs text-gray-400">Penduduk</p>
        </div>
@@ -346,6 +346,49 @@ const pindahData=[];
 const meninggalData=[];
 
 const activityData=[];
+
+const rtList=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16'];
+const rtOptionsHTML=rtList.map(rt=>`<option value="${rt}">${rt}</option>`).join('');
+const rtDatabase={penduduk:{},pendatang:{},pindah:{},meninggal:{}};
+
+function renderRtOptions(selected=''){
+ return rtList.map(rt=>`<option value="${rt}" ${selected===rt?'selected':''}>${rt}</option>`).join('');
+}
+
+function normalizeRT(value){
+ const raw=String(value||'').trim();
+ const digits=raw.replace(/\D/g,'');
+ if(!digits) return '';
+ if(digits.length===1) return '0'+digits;
+ if(digits.length===2) return digits;
+ if(digits.length===3 && digits.startsWith('0')) return digits.slice(1);
+ return digits;
+}
+
+function rebuildRtDatabase(){
+ rtList.forEach(rt=>{
+  rtDatabase.penduduk[rt]=[];
+  rtDatabase.pendatang[rt]=[];
+  rtDatabase.pindah[rt]=[];
+  rtDatabase.meninggal[rt]=[];
+ });
+ [
+  ['penduduk',pendudukData],
+  ['pendatang',pendatangData],
+  ['pindah',pindahData],
+  ['meninggal',meninggalData]
+ ].forEach(([key,arr])=>{
+  arr.forEach(item=>{
+   const rt=normalizeRT(item.rt);
+   if(rtList.includes(rt)) rtDatabase[key][rt].push(item);
+  });
+ });
+}
+
+function getRTDatabase(type,rt){
+ const normalized=normalizeRT(rt);
+ return rtDatabase[type]?.[normalized]||[];
+}
 
 function formatRelativeTime(ts){
  const diff=Math.floor((Date.now()-ts)/1000);
@@ -426,7 +469,7 @@ tgl_lahir:p.tgl_lahir,
 bln_lahir:p.bln_lahir,
 thn_lahir:p.thn_lahir,
 alamat:'(Belum diisi)',
-rt:p.rt,
+rt:normalizeRT(p.rt),
 rw:p.rw||'01',
 jk:'L',
 status:'Belum Kawin',
@@ -449,6 +492,8 @@ meninggalData.forEach(m=>{
 const idx=pendudukData.findIndex(pd=>pd.nik===m.nik);
 if(idx!==-1) pendudukData.splice(idx,1);
 });
+
+rebuildRtDatabase();
 }
 
 const usersData=[
@@ -547,10 +592,10 @@ renderRecentActivity();
 
 function updateRtStats(){
  const rtCounts={};
- ['01','02','03','04','05','06','07','08','09','10','011','012','013','014','015','016'].forEach(rt=>{rtCounts[rt]=0;});
- pendudukData.forEach(p=>{if(p.rt){const key=p.rt.toString().padStart(2,'0');if(rtCounts[key]!==undefined) rtCounts[key]++;}});
+ rtList.forEach(rt=>{rtCounts[rt]=0;});
+ pendudukData.forEach(p=>{if(p.rt){const key=normalizeRT(p.rt);if(rtCounts[key]!==undefined) rtCounts[key]++;}});
  document.querySelectorAll('#rt-stats [data-rt]').forEach(card=>{
-  const rt=card.dataset.rt;
+  const rt=normalizeRT(card.dataset.rt);
   const count=rtCounts[rt]||0;
   const countEl=card.querySelector('.rt-count');
   if(countEl) countEl.textContent=count.toLocaleString('id-ID');
@@ -558,6 +603,7 @@ function updateRtStats(){
 }
 
 function refreshCurrentView(){
+ rebuildRtDatabase();
  if(currentView==='dashboard'){
   updateDashboardStats();
  } else if(currentView==='penduduk'){
@@ -644,11 +690,11 @@ const v=document.getElementById('view-penduduk');
 v.innerHTML=`
 <div class="flex flex-col sm:flex-row gap-3 mb-4">
 <div class="relative flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i><input id="search-penduduk" type="text" placeholder="Cari nama atau NIK..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" oninput="filterPenduduk()"></div>
-<select id="filter-rt" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" onchange="filterPenduduk()"><option value="">Semua RT</option><option>01</option><option>02</option><option>03</option><option>04</option>RT05</option><option>06</option><option>07</option><option>08</option><option>09</option>RT010</option><option>011</option><option>012</option><option>013</option><option>014</option><option>015</option><option>016</option></option></select>
+<select id="filter-rt" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" onchange="filterPenduduk()"><option value="">Semua RT</option>${rtOptionsHTML}</select>
 <button onclick="showFormPenduduk()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 justify-center"><i data-lucide="plus" class="w-4 h-4"></i>Tambah</button>
 </div>
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-<div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100"><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NIK</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Alamat</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">RT</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Status</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody id="tbody-penduduk"></tbody></table></div>
+<div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100"><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NIK</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Alamat</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">RT</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Lansia</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Status</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody id="tbody-penduduk"></tbody></table></div>
 </div>`;
 filterPenduduk();
 }
@@ -658,14 +704,14 @@ const s=(document.getElementById('search-penduduk')?.value||'').toLowerCase();
 const rt=document.getElementById('filter-rt')?.value||'';
 const filtered=pendudukData.filter(r=>{
 const matchSearch=r.nama.toLowerCase().includes(s)||r.nik.includes(s);
-const matchRT=!rt||r.rt===rt;
+const matchRT=!rt||normalizeRT(r.rt)===normalizeRT(rt);
 return matchSearch&&matchRT;
 });
 const tbody=document.getElementById('tbody-penduduk');
 if(!tbody)return;
 tbody.innerHTML=filtered.map(r=>{
 const idx=pendudukData.findIndex(pd=>pd.nik===r.nik);
-return `<tr class="table-row border-b border-gray-50"><td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium text-gray-800">${r.nama}${r.isKepalaKeluarga?'<span class="ml-2 text-[10px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-medium">Kepala KK</span>':''}</td><td class="px-3 py-2.5 text-xs text-gray-500 hidden md:table-cell">${r.alamat||'-'}</td><td class="px-3 py-2.5"><span class="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">RT ${r.rt||'-'}</span></td><td class="px-3 py-2.5 text-xs hidden sm:table-cell">${r.status||'-'}</td><td class="px-3 py-2.5"><div class="flex gap-1"><button onclick="showFormPenduduk('${r.nik}')" class="p-2 rounded-lg hover:bg-blue-100 bg-blue-50 text-blue-600 hover:text-blue-700 transition font-medium flex items-center gap-1.5" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i><span class="text-xs hidden sm:inline">Edit</span></button><button onclick="confirmDelete('penduduk','${r.nik}')" class="p-2 rounded-lg hover:bg-red-100 text-red-500 hover:text-red-600 transition" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></td></tr>`;
+return `<tr class="table-row border-b border-gray-50"><td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium text-gray-800">${r.nama}${r.isKepalaKeluarga?'<span class="ml-2 text-[10px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-medium">Kepala KK</span>':''}</td><td class="px-3 py-2.5 text-xs text-gray-500 hidden md:table-cell">${r.alamat||'-'}</td><td class="px-3 py-2.5"><span class="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">RT ${r.rt||'-'}</span></td><td class="px-3 py-2.5 text-xs hidden sm:table-cell">${r.lansia?'Ya':'Tidak'}</td><td class="px-3 py-2.5 text-xs hidden sm:table-cell">${r.status||'-'}</td><td class="px-3 py-2.5"><div class="flex gap-1"><button onclick="showFormPenduduk('${r.nik}')" class="p-2 rounded-lg hover:bg-blue-100 bg-blue-50 text-blue-600 hover:text-blue-700 transition font-medium flex items-center gap-1.5" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i><span class="text-xs hidden sm:inline">Edit</span></button><button onclick="confirmDelete('penduduk','${r.nik}')" class="p-2 rounded-lg hover:bg-red-100 text-red-500 hover:text-red-600 transition" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></td></tr>`;
 }).join('');
 lucide.createIcons();
 }
@@ -970,7 +1016,7 @@ openModal(`
 <div><label class="block text-xs font-medium text-gray-600 mb-1">Nama Kepala Keluarga</label><input name="kepala" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">NIK Kepala</label><input name="nik" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">Alamat</label><input name="alamat" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option></select></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">${rtOptionsHTML}</select></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input name="rw" value="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">Jenis Kelamin</label><select name="jk" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Belum Kawin">Belum Kawin</option><option value="Kawin">Kawin</option><option value="Cerai">Cerai</option></select></div>
@@ -987,6 +1033,7 @@ lucide.createIcons();
 document.getElementById('form-kk').addEventListener('submit',function(e){
 e.preventDefault();
 const obj=Object.fromEntries(new FormData(this));
+obj.rt=normalizeRT(obj.rt||'01');
 pendudukData.push({
 nik:obj.nik,
 nama:obj.kepala,
@@ -995,7 +1042,7 @@ tgl_lahir:obj.tgl_lahir||'',
 bln_lahir:obj.bln_lahir||'01',
 thn_lahir:obj.thn_lahir||'2000',
 alamat:obj.alamat||'',
-rt:obj.rt||'01',
+rt:obj.rt,
 rw:obj.rw||'01',
 jk:obj.jk||'L',
 status:obj.status||'Belum Kawin',
@@ -1027,6 +1074,8 @@ openModal(`
 <div><label class="block text-xs font-medium text-gray-600 mb-1">Nama Lengkap</label><input name="nama" value="${r.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="date" name="tgl_lahir" value="${r.tgl_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div><label class="block text-xs font-medium text-gray-600 mb-1">Usia</label><input type="number" name="usia" value="${r.usia||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
+<div class="sm:col-span-2 flex items-center gap-2"><label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="checkbox" name="lansia" ${r.lansia?'checked':''} class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"><span>Lansia</span></label></div>
 <div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Alamat</label><input name="alamat" value="${r.alamat||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option ${r.rt==='01'?'selected':''}>01</option><option ${r.rt==='02'?'selected':''}>02</option><option ${r.rt==='03'?'selected':''}>03</option><option ${r.rt==='04'?'selected':''}>04</option><option ${r.rt==='05'?'selected':''}>05</option><option ${r.rt==='06'?'selected':''}>06</option><option ${r.rt==='07'?'selected':''}>07</option><option ${r.rt==='08'?'selected':''}>08</option><option ${r.rt==='09'?'selected':''}>09</option><option ${r.rt==='10'?'selected':''}>10</option><option ${r.rt==='11'?'selected':''}>11</option><option ${r.rt==='12'?'selected':''}>12</option><option ${r.rt==='13'?'selected':''}>13</option><option ${r.rt==='14'?'selected':''}>14</option><option ${r.rt==='15'?'selected':''}>15</option><option ${r.rt==='16'?'selected':''}>16</option></select></div>
 <div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input name="rw" value="${r.rw||'01'}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="01"></div>
@@ -1044,21 +1093,21 @@ openModal(`
 </div>
 <div id="family-members" class="space-y-2">
 ${familyMembers.map((fm,i)=>`
-<div class="p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+<div class="family-member p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
 <div class="grid grid-cols-2 gap-2">
-<input type="text" value="${fm.nama||''}" placeholder="Nama anggota" onchange="updateFamilyMember(${i},'nama',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-<input type="text" value="${fm.nik||''}" placeholder="NIK" onchange="updateFamilyMember(${i},'nik',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<input type="text" data-field="nama" value="${fm.nama||''}" placeholder="Nama anggota" onchange="updateFamilyMember(${i},'nama',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<input type="text" data-field="nik" value="${fm.nik||''}" placeholder="NIK" onchange="updateFamilyMember(${i},'nik',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
 </div>
 <div class="grid grid-cols-2 gap-2">
-<input type="text" value="${fm.tempat_lahir||''}" placeholder="Tempat Lahir" onchange="updateFamilyMember(${i},'tempat_lahir',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-<input type="date" value="${fm.tgl_lahir||''}" onchange="updateFamilyMember(${i},'tgl_lahir',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<input type="text" data-field="tempat_lahir" value="${fm.tempat_lahir||''}" placeholder="Tempat Lahir" onchange="updateFamilyMember(${i},'tempat_lahir',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<input type="date" data-field="tgl_lahir" value="${fm.tgl_lahir||''}" onchange="updateFamilyMember(${i},'tgl_lahir',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
 </div>
 <div class="grid grid-cols-3 gap-2">
-<select onchange="updateFamilyMember(${i},'jk',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<select data-field="jk" onchange="updateFamilyMember(${i},'jk',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
 <option ${fm.jk==='L'?'selected':''} value="L">Laki-laki</option>
 <option ${fm.jk==='P'?'selected':''} value="P">Perempuan</option>
 </select>
-<select onchange="updateFamilyMember(${i},'status',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
+<select data-field="status" onchange="updateFamilyMember(${i},'status',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
 <option ${fm.status==='Belum Kawin'?'selected':''}>Belum Kawin</option>
 <option ${fm.status==='Kawin'?'selected':''}>Kawin</option>
 <option ${fm.status==='Cerai'?'selected':''}>Cerai</option>
@@ -1080,7 +1129,10 @@ document.getElementById('form-penduduk').addEventListener('submit',function(e){
 e.preventDefault();
 const fd=new FormData(this);
 const obj=Object.fromEntries(fd);
+obj.rt=normalizeRT(obj.rt||'');
 obj.isKepalaKeluarga=this.querySelector('input[name="isKepalaKeluarga"]').checked||false;
+obj.lansia=this.querySelector('input[name="lansia"]').checked||false;
+obj.usia=Number(obj.usia)||0;
 const familyNodes=Array.from(document.querySelectorAll('#family-members .family-member'));
 obj.familyMembers=familyNodes.map(el=>({
 nama:el.querySelector('[data-field="nama"]').value||'',
@@ -1142,9 +1194,9 @@ const isEdit=idx!==undefined;
 const labels={pendatang:'Pendatang',pindah:'Pindah',meninggal:'Meninggal'};
 const r=isEdit?(type==='pendatang'?pendatangData[idx]:type==='pindah'?pindahData[idx]:meninggalData[idx]):null;
 const fields={
-pendatang:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Asal</label><input name="asal" value="${r?.asal||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Datang</label><input type="date" name="tglDatang" value="${r?.tglDatang||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT Tujuan</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option ${r?.rt==='01'?'selected':''}>01</option><option ${r?.rt==='02'?'selected':''}>02</option><option ${r?.rt==='03'?'selected':''}>03</option><option ${r?.rt==='04'?'selected':''}>04</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Nomor Kartu Keluarga</label><input type="text" name="noKK" value="${r?.noKK||''}" placeholder="16 digit No. KK" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Tujuan/Alasan</label><input name="tujuan" value="${r?.tujuan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>`,
-pindah:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tujuan Pindah</label><input name="tujuan" value="${r?.tujuan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Pindah</label><input type="date" name="tglPindah" value="${r?.tglPindah||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT Asal</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option ${r?.rt==='01'?'selected':''}>01</option><option ${r?.rt==='02'?'selected':''}>02</option><option ${r?.rt==='03'?'selected':''}>03</option><option ${r?.rt==='04'?'selected':''}>04</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Alasan</label><input name="alasan" value="${r?.alasan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>`,
-meninggal:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Meninggal</label><input type="date" name="tglMeninggal" value="${r?.tglMeninggal||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Usia</label><input type="number" name="usia" value="${r?.usia||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option ${r?.rt==='01'?'selected':''}>01</option><option ${r?.rt==='02'?'selected':''}>02</option><option ${r?.rt==='03'?'selected':''}>03</option><option ${r?.rt==='04'?'selected':''}>04</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Sebab Meninggal</label><input name="sebab" value="${r?.sebab||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>`
+pendatang:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Asal</label><input name="asal" value="${r?.asal||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Datang</label><input type="date" name="tglDatang" value="${r?.tglDatang||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT Tujuan</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none">${renderRtOptions(r?.rt)}</select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Nomor Kartu Keluarga</label><input type="text" name="noKK" value="${r?.noKK||''}" placeholder="16 digit No. KK" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Tujuan/Alasan</label><input name="tujuan" value="${r?.tujuan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>,
+pindah:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tujuan Pindah</label><input name="tujuan" value="${r?.tujuan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Pindah</label><input type="date" name="tglPindah" value="${r?.tglPindah||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT Asal</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none">${renderRtOptions(r?.rt)}</select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Alasan</label><input name="alasan" value="${r?.alasan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>,
+meninggal:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Meninggal</label><input type="date" name="tglMeninggal" value="${r?.tglMeninggal||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Usia</label><input type="number" name="usia" value="${r?.usia||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none">${renderRtOptions(r?.rt)}</select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Sebab Meninggal</label><input name="sebab" value="${r?.sebab||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>
 };
 openModal(`
 <div class="p-6">
@@ -1162,6 +1214,7 @@ document.getElementById('form-'+type).addEventListener('submit',function(e){
 e.preventDefault();
 const fd=new FormData(this);
 const obj=Object.fromEntries(fd);
+obj.rt=normalizeRT(obj.rt||'');
 if(type==='pendatang'){
 if(isEdit){Object.assign(pendatangData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Pendatang diperbarui', 'user-plus', 'blue');}
 else{pendatangData.push(obj);showToast('Data ditambahkan','success');addActivity('Pendatang baru ditambahkan', 'user-plus', 'blue');}
