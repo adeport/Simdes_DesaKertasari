@@ -57,21 +57,21 @@ html,body{height:100%;overflow:hidden}
       <p class="text-sm text-gray-500 mt-1">Sistem Informasi Desa</p>
       <p id="login-village" class="text-xs text-primary-600 font-medium mt-1">Desa Kertasari, Kec. Pangkalan, Kab. Karawang</p>
      </div>
-     <form id="login-form" class="space-y-4">
+     <form id="login-form" class="space-y-4" autocomplete="off">
       <div>
        <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
        <div class="relative">
-        <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i> <input id="login-user" type="text" placeholder="Masukkan username" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm">
+        <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i> <input id="login-user" type="text" autocomplete="username" placeholder="Masukkan username" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm">
        </div>
       </div>
       <div>
        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
        <div class="relative">
-        <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i> <input id="login-pass" type="password" placeholder="Masukkan password" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm">
+        <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i> <input id="login-pass" type="password" autocomplete="current-password" placeholder="Masukkan password" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm">
        </div>
       </div>
       <div>
-       <label class="block text-sm font-medium text-gray-700 mb-1">Login Sebagai</label> <select id="login-role" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"> <option value="admin">Admin Desa</option> <option value="rt">Ketua RT</option> </select>
+       <label class="block text-sm font-medium text-gray-700 mb-1">Login Sebagai</label> <select id="login-role" autocomplete="off" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"> <option value="" disabled selected>Pilih peran</option> <option value="admin">Admin Desa</option> <option value="rt">Ketua RT</option> </select>
       </div><button type="submit" class="w-full btn-primary text-white py-2.5 rounded-lg font-semibold text-sm">Masuk</button>
      </form>
      <p class="text-center text-xs text-gray-400 mt-6">© 2025 SIMDES Desa Kertasari</p>
@@ -474,19 +474,29 @@ const usersData=[
 // LOGIN
 document.getElementById('login-form').addEventListener('submit',function(e){
 e.preventDefault();
-const role=document.getElementById('login-role').value;
+const user=document.getElementById('login-user');
+const pass=document.getElementById('login-pass');
+const roleSelect=document.getElementById('login-role');
+const role=roleSelect.value;
+if(!role){
+ alert('Pilih login sebagai Admin Desa atau Ketua RT.');
+ return;
+}
 currentRole=role;
 document.getElementById('page-login').classList.remove('active');
 document.getElementById('page-app').classList.add('active');
 document.getElementById('header-user').textContent = role==='admin' ? 'Admin Desa' : 'Ketua RT';
 document.getElementById('header-role').textContent = role==='admin' ? 'Administrator' : 'RT';
 if(role==='rt'){
-document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
-document.getElementById('rt-stats').classList.remove('hidden');
+ document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
+ document.getElementById('rt-stats').classList.remove('hidden');
 }else{
-document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
-document.getElementById('rt-stats').classList.add('hidden');
+ document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
+ document.getElementById('rt-stats').classList.add('hidden');
 }
+user.value='';
+pass.value='';
+roleSelect.selectedIndex = 0;
 navigate('dashboard');
 lucide.createIcons();
 });
@@ -494,6 +504,8 @@ lucide.createIcons();
 function logout(){
 document.getElementById('page-app').classList.remove('active');
 document.getElementById('page-login').classList.add('active');
+document.getElementById('login-form').reset();
+document.getElementById('login-role').selectedIndex = 0;
 currentView='dashboard';
 }
 
@@ -543,6 +555,16 @@ function updateRtStats(){
   const countEl=card.querySelector('.rt-count');
   if(countEl) countEl.textContent=count.toLocaleString('id-ID');
  });
+}
+
+function refreshCurrentView(){
+ if(currentView==='dashboard'){
+  updateDashboardStats();
+ } else if(currentView==='penduduk'){
+  renderPenduduk();
+ } else if(['pendatang','pindah','meninggal','kk','users'].includes(currentView)){
+  navigate(currentView);
+ }
 }
 
 function updateChartsAndComposition(){
@@ -1071,8 +1093,7 @@ status:el.querySelector('[data-field="status"]').value||'Belum Kawin'
 if(isEdit){Object.assign(pendudukData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Data penduduk diperbarui', 'user-check', 'primary');}
 else{pendudukData.push(obj);showToast('Data berhasil ditambahkan','success');addActivity('Data penduduk baru ditambahkan', 'user-plus', 'primary');}
 closeModal();
-if(currentView==='dashboard') updateDashboardStats();
-else navigate('penduduk');
+refreshCurrentView();
 });
 }
 
@@ -1144,19 +1165,16 @@ const obj=Object.fromEntries(fd);
 if(type==='pendatang'){
 if(isEdit){Object.assign(pendatangData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Pendatang diperbarui', 'user-plus', 'blue');}
 else{pendatangData.push(obj);showToast('Data ditambahkan','success');addActivity('Pendatang baru ditambahkan', 'user-plus', 'blue');}
-syncData();
 }else if(type==='pindah'){
 if(isEdit){Object.assign(pindahData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Data pindah diperbarui', 'truck', 'amber');}
 else{pindahData.push(obj);showToast('Data ditambahkan','success');addActivity('Data pindah baru ditambahkan', 'truck', 'amber');}
-syncData();
 }else if(type==='meninggal'){
 if(isEdit){Object.assign(meninggalData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Data meninggal diperbarui', 'heart', 'red');}
 else{meninggalData.push(obj);showToast('Data ditambahkan','success');addActivity('Data meninggal baru ditambahkan', 'heart', 'red');}
-syncData();
 }
+syncData();
 closeModal();
-if(currentView==='dashboard') updateDashboardStats();
-else navigate(type);
+refreshCurrentView();
 });
 }
 
@@ -1210,8 +1228,7 @@ syncData();
 closeModal();
 addActivity(activityMessage, activityIcon, activityColor);
 showToast('Data berhasil dihapus','success');
-if(currentView==='dashboard') updateDashboardStats();
-else navigate(type);
+refreshCurrentView();
 }
 
 // MODAL
