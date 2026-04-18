@@ -335,7 +335,7 @@ html,body{height:100%;overflow:hidden}
   <div id="toast-container" class="fixed top-4 right-4 z-[60] space-y-2"></div>
   <script>
 // STATE
-let currentRole='admin', currentView='dashboard', sidebarOpen=false;
+let currentUser=null, currentRole='admin', currentView='dashboard', sidebarOpen=false;
 
 // DUMMY DATA
 const pendudukData=[];
@@ -503,41 +503,57 @@ rebuildRtDatabase();
 }
 
 const usersData=[
-{username:'admin',nama:'Administrator',role:'Admin Desa',status:'Aktif'},
-{username:'rt01',nama:'Nana Supriatna',role:'Ketua RT 01',status:'Aktif'},
-{username:'rt02',nama:'Awang Awangsih',role:'Ketua RT 02',status:'Aktif'},
-{username:'rt03',nama:'Surdin',role:'Ketua RT 03',status:'Aktif'},
-{username:'rt04',nama:'Hasan',role:'Ketua RT 04',status:'Aktif'},
-{username:'rt05',nama:'Suryana',role:'Ketua RT 05',status:'Aktif'},
-{username:'rt06',nama:'Ucep',role:'Ketua RT 06',status:'Aktif'},
-{username:'rt07',nama:'Eneng Siti Rohmah',role:'Ketua RT 07',status:'Aktif'},
-{username:'rt08',nama:'Dasa',role:'Ketua RT 08',status:'Aktif'},
-{username:'rt09',nama:'Emad',role:'Ketua RT 09',status:'Aktif'},
-{username:'rt10',nama:'Sarmin',role:'Ketua RT 010',status:'Aktif'},
-{username:'rt11',nama:'Dede Risman Saepulloh',role:'Ketua RT 011',status:'Aktif'},
-{username:'rt12',nama:'Edi Setia Budi',role:'Ketua RT 012',status:'Aktif'},
-{username:'rt13',nama:'Dayat',role:'Ketua RT 013',status:'Aktif'},
-{username:'rt14',nama:'Nerwin',role:'Ketua RT 014',status:'Aktif'},
-{username:'rt15',nama:'Hendar Ridwan',role:'Ketua RT 015',status:'Aktif'},
-{username:'rt16',nama:'Tini Kartini',role:'Ketua RT 016',status:'Aktif'}
+{username:'admin',nama:'Administrator',role:'Admin Desa',status:'Aktif',password:'admin'},
+{username:'rt01',nama:'Nana Supriatna',role:'Ketua RT 01',status:'Aktif',password:'rt01'},
+{username:'rt02',nama:'Awang Awangsih',role:'Ketua RT 02',status:'Aktif',password:'rt02'},
+{username:'rt03',nama:'Surdin',role:'Ketua RT 03',status:'Aktif',password:'rt03'},
+{username:'rt04',nama:'Hasan',role:'Ketua RT 04',status:'Aktif',password:'rt04'},
+{username:'rt05',nama:'Suryana',role:'Ketua RT 05',status:'Aktif',password:'rt05'},
+{username:'rt06',nama:'Ucep',role:'Ketua RT 06',status:'Aktif',password:'rt06'},
+{username:'rt07',nama:'Eneng Siti Rohmah',role:'Ketua RT 07',status:'Aktif',password:'rt07'},
+{username:'rt08',nama:'Dasa',role:'Ketua RT 08',status:'Aktif',password:'rt08'},
+{username:'rt09',nama:'Emad',role:'Ketua RT 09',status:'Aktif',password:'rt09'},
+{username:'rt10',nama:'Sarmin',role:'Ketua RT 010',status:'Aktif',password:'rt10'},
+{username:'rt11',nama:'Dede Risman Saepulloh',role:'Ketua RT 011',status:'Aktif',password:'rt11'},
+{username:'rt12',nama:'Edi Setia Budi',role:'Ketua RT 012',status:'Aktif',password:'rt12'},
+{username:'rt13',nama:'Dayat',role:'Ketua RT 013',status:'Aktif',password:'rt13'},
+{username:'rt14',nama:'Nerwin',role:'Ketua RT 014',status:'Aktif',password:'rt14'},
+{username:'rt15',nama:'Hendar Ridwan',role:'Ketua RT 015',status:'Aktif',password:'rt15'},
+{username:'rt16',nama:'Tini Kartini',role:'Ketua RT 016',status:'Aktif',password:'rt16'}
 ];
 
 // LOGIN
 document.getElementById('login-form').addEventListener('submit',function(e){
 e.preventDefault();
-const user=document.getElementById('login-user');
-const pass=document.getElementById('login-pass');
+const userInput=document.getElementById('login-user').value.trim();
+const passInput=document.getElementById('login-pass').value.trim();
 const roleSelect=document.getElementById('login-role');
 const role=roleSelect.value;
-if(!role){
- alert('Pilih login sebagai Admin Desa atau Ketua RT.');
+
+if(!userInput || !passInput || !role){
+ alert('Harap isi semua field: Username, Password, dan Pilih Role.');
  return;
 }
-currentRole=role;
+
+const user = usersData.find(u => u.username === userInput && u.password === passInput && u.status === 'Aktif');
+if(!user){
+ alert('Username atau password salah, atau akun tidak aktif.');
+ return;
+}
+
+if((role === 'admin' && user.username !== 'admin') || (role === 'rt' && !user.username.startsWith('rt'))){
+ alert('Role tidak sesuai dengan akun user.');
+ return;
+}
+
+currentUser = user;
+currentRole = role;
+
 document.getElementById('page-login').classList.remove('active');
 document.getElementById('page-app').classList.add('active');
-document.getElementById('header-user').textContent = role==='admin' ? 'Admin Desa' : 'Ketua RT';
-document.getElementById('header-role').textContent = role==='admin' ? 'Administrator' : 'RT';
+document.getElementById('header-user').textContent = user.nama;
+document.getElementById('header-role').textContent = user.role;
+
 if(role==='rt'){
  document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
  document.getElementById('rt-stats').classList.remove('hidden');
@@ -545,14 +561,17 @@ if(role==='rt'){
  document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
  document.getElementById('rt-stats').classList.add('hidden');
 }
-user.value='';
-pass.value='';
+
+document.getElementById('login-user').value='';
+document.getElementById('login-pass').value='';
 roleSelect.selectedIndex = 0;
 navigate('dashboard');
 lucide.createIcons();
 });
 
 function logout(){
+currentUser = null;
+currentRole = 'admin';
 document.getElementById('page-app').classList.remove('active');
 document.getElementById('page-login').classList.add('active');
 document.getElementById('login-form').reset();
@@ -571,10 +590,24 @@ ov.classList.toggle('active',sidebarOpen);
 // UPDATE DASHBOARD STATS
 function updateDashboardStats(){
 syncData();
-const totalPenduduk=pendudukData.length;
-const totalPendatang=pendatangData.length;
-const totalPindah=pindahData.length;
-const totalMeninggal=meninggalData.length;
+
+let filteredPenduduk = pendudukData;
+let filteredPendatang = pendatangData;
+let filteredPindah = pindahData;
+let filteredMeninggal = meninggalData;
+
+if(currentRole === 'rt' && currentUser){
+ const userRt = currentUser.username.replace('rt', '').padStart(2, '0');
+ filteredPenduduk = pendudukData.filter(p => normalizeRT(p.rt) === userRt);
+ filteredPendatang = pendatangData.filter(p => normalizeRT(p.rt) === userRt);
+ filteredPindah = pindahData.filter(p => normalizeRT(p.rt) === userRt);
+ filteredMeninggal = meninggalData.filter(p => normalizeRT(p.rt) === userRt);
+}
+
+const totalPenduduk=filteredPenduduk.length;
+const totalPendatang=filteredPendatang.length;
+const totalPindah=filteredPindah.length;
+const totalMeninggal=filteredMeninggal.length;
 
 // Update stat cards
 const stats=[
@@ -591,7 +624,7 @@ card.querySelector('p:first-of-type').textContent=stat.value.toLocaleString('id-
 });
 
 // Update charts and composition
-updateChartsAndComposition();
+updateChartsAndComposition(filteredPenduduk);
 updateRtStats();
 renderRecentActivity();
 }
@@ -619,21 +652,21 @@ function refreshCurrentView(){
  }
 }
 
-function updateChartsAndComposition(){
-const totalPenduduk=pendudukData.length;
-const laki=pendudukData.filter(p=>p.jk==='L').length;
-const perempuan=pendudukData.filter(p=>p.jk==='P').length;
-const usiaProd=pendudukData.filter(p=>{
+function updateChartsAndComposition(filteredData = pendudukData){
+const totalPenduduk=filteredData.length;
+const laki=filteredData.filter(p=>p.jk==='L').length;
+const perempuan=filteredData.filter(p=>p.jk==='P').length;
+const usiaProd=filteredData.filter(p=>{
 const thn=parseInt(p.thn_lahir)||2000;
 const usia=2025-thn;
 return usia>=15&&usia<=64;
 }).length;
-const anak=pendudukData.filter(p=>{
+const anak=filteredData.filter(p=>{
 const thn=parseInt(p.thn_lahir)||2000;
 const usia=2025-thn;
 return usia<15;
 }).length;
-const lansia=pendudukData.filter(p=>{
+const lansia=filteredData.filter(p=>{
 const thn=parseInt(p.thn_lahir)||2000;
 const usia=2025-thn;
 return usia>64;
@@ -692,23 +725,36 @@ lucide.createIcons();
 
 // RENDER PENDUDUK
 function renderPenduduk(){
+let dataToUse = pendudukData;
+if(currentRole === 'rt' && currentUser){
+ const userRt = currentUser.username.replace('rt', '').padStart(2, '0');
+ dataToUse = pendudukData.filter(p => normalizeRT(p.rt) === userRt);
+}
+
 const v=document.getElementById('view-penduduk');
 v.innerHTML=`
 <div class="flex flex-col sm:flex-row gap-3 mb-4">
 <div class="relative flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i><input id="search-penduduk" type="text" placeholder="Cari nama atau NIK..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" oninput="filterPenduduk()"></div>
-<select id="filter-rt" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" onchange="filterPenduduk()"><option value="">Semua RT</option>${rtOptionsHTML}</select>
+${currentRole === 'admin' ? `<select id="filter-rt" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" onchange="filterPenduduk()"><option value="">Semua RT</option>${rtOptionsHTML}</select>` : ''}
 <button onclick="showFormPenduduk()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 justify-center"><i data-lucide="plus" class="w-4 h-4"></i>Tambah</button>
 </div>
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
 <div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100"><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NIK</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Alamat</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">RT</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Lansia</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Status</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Hamil</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Penyakit</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Stunting</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Anak Kerja</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Sekolah</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody id="tbody-penduduk"></tbody></table></div>
 </div>`;
-filterPenduduk();
+filterPenduduk(dataToUse);
 }
 
-function filterPenduduk(){
+function filterPenduduk(dataToUse = pendudukData){
+if(currentRole === 'rt' && currentUser && !dataToUse){
+ const userRt = currentUser.username.replace('rt', '').padStart(2, '0');
+ dataToUse = pendudukData.filter(p => normalizeRT(p.rt) === userRt);
+} else if(!dataToUse){
+ dataToUse = pendudukData;
+}
+
 const s=(document.getElementById('search-penduduk')?.value||'').toLowerCase();
 const rt=document.getElementById('filter-rt')?.value||'';
-const filtered=pendudukData.filter(r=>{
+const filtered=dataToUse.filter(r=>{
 const matchSearch=r.nama.toLowerCase().includes(s)||r.nik.includes(s);
 const matchRT=!rt||normalizeRT(r.rt)===normalizeRT(rt);
 return matchSearch&&matchRT;
