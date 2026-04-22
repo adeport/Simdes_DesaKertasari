@@ -3,1552 +3,535 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIMDES – Sistem Informasi Desa</title>
+  <title>KK Scanner</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="/_sdk/element_sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
-  <script>
-tailwind.config={theme:{extend:{colors:{primary:{50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b'},accent:{50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6'}},fontFamily:{sans:['Plus Jakarta Sans','sans-serif']}}}}
-</script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <style>
-*{font-family:'Plus Jakarta Sans',sans-serif;margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden}
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:#f1f5f9}
-::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:3px}
-.page{display:none}.page.active{display:flex;height:100%}
-.sidebar-item{transition:all .2s}
-.sidebar-item:hover,.sidebar-item.active{background:rgba(255,255,255,.15);border-radius:8px}
-.card-stat{transition:transform .2s,box-shadow .2s}
-.card-stat:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.1)}
-.fade-in{animation:fadeIn .4s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.btn-primary{background:linear-gradient(135deg,#059669,#10b981);transition:all .2s}
-.btn-primary:hover{box-shadow:0 4px 15px rgba(16,185,129,.4)}
-.login-bg{background:linear-gradient(135deg,#064e3b 0%,#047857 40%,#059669 70%,#10b981 100%);position:relative;overflow:hidden}
-.login-bg::before{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,rgba(16,185,129,.15),transparent);pointer-events:none}
-.mountain-svg{position:absolute;bottom:0;left:0;right:0;opacity:.08}
-.chart-bar{transition:height .6s ease;border-radius:4px 4px 0 0}
-.table-row:hover{background:#f0fdf4}
-.modal-overlay{background:rgba(0,0,0,.4);backdrop-filter:blur(4px)}
-.toast{animation:slideIn .3s ease,fadeOut .3s ease 2.7s}
-@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-@keyframes fadeOut{from{opacity:1}to{opacity:0}}
-.mobile-overlay{display:none}
-@media(max-width:768px){.sidebar-desktop{transform:translateX(-100%);position:fixed;z-index:50;transition:transform .3s}.sidebar-desktop.open{transform:translateX(0)}.mobile-overlay.active{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40}}
+* { font-family: 'Plus Jakarta Sans', sans-serif; }
+.toast { animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s; }
+@keyframes slideIn { from { transform: translateY(-20px); opacity:0 } to { transform: translateY(0); opacity:1 } }
+@keyframes fadeOut { to { opacity:0 } }
+/* Crop overlay */
+.crop-handle { width:16px; height:16px; background:#fff; border:2px solid #0ea5e9; border-radius:50%; position:absolute; cursor:grab; z-index:20; touch-action:none; }
+.crop-region { position:absolute; border:2px dashed #0ea5e9; background:rgba(14,165,233,0.08); z-index:10; }
 </style>
   <style>body { box-sizing: border-box; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
- <body class="h-full bg-gray-50">
-  <!-- LOGIN PAGE -->
-  <div id="page-login" class="page active login-bg w-full" style="height:100%">
-   <svg class="mountain-svg" viewbox="0 0 1440 320"><path fill="#fff" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,218.7C672,235,768,245,864,234.7C960,224,1056,192,1152,181.3C1248,171,1344,181,1392,186.7L1440,192L1440,320L0,320Z" />
-   </svg>
-   <div class="flex items-center justify-center w-full h-full p-4 relative z-10">
-    <div class="bg-white/95 backdrop-blur rounded-2xl shadow-2xl w-full max-w-md p-8 fade-in">
-     <!-- Logo -->
-     <div class="text-center mb-6">
-      <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-white flex items-center justify-center shadow-lg overflow-hidden">
-       <img src="https://iili.io/BUijUns.png" alt="Logo SIMDES" class="w-16 h-16 object-contain">
-      </div>
-      <h1 id="login-title" class="text-2xl font-bold text-gray-800">SIMDES</h1>
-      <p class="text-sm text-gray-500 mt-1">Sistem Informasi Desa</p>
-      <p id="login-village" class="text-xs text-primary-600 font-medium mt-1">Desa Kertasari, Kec. Pangkalan, Kab. Karawang</p>
+ <body class="h-full bg-slate-950 text-slate-100 overflow-auto">
+  <div id="app" class="w-full h-full min-h-full">
+   <!-- Toast container -->
+   <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div><!-- Header -->
+   <header class="bg-gradient-to-r from-sky-600 to-cyan-500 px-4 py-5 shadow-lg shadow-sky-900/30">
+    <div class="max-w-5xl mx-auto flex items-center gap-3">
+     <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center"><i data-lucide="scan-line" class="w-5 h-5 text-white"></i>
      </div>
-     <form id="login-form" class="space-y-4" autocomplete="off">
-      <div>
-       <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-       <div class="relative">
-        <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i> <input id="login-user" type="text" autocomplete="username" placeholder="Masukkan username" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm">
+     <div>
+      <h1 id="el-title" class="text-xl font-800 text-white tracking-tight">Scanner Kartu Keluarga</h1>
+      <p class="text-sky-100 text-xs font-medium">Capture · OCR · Export Excel</p>
+     </div>
+    </div>
+   </header>
+   <main class="max-w-5xl mx-auto p-4 space-y-6 pb-12">
+    <!-- Step 1: Camera / Capture -->
+    <section class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+     <div class="px-5 py-3 border-b border-slate-800 flex items-center gap-2">
+      <span class="w-6 h-6 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center justify-center">1</span>
+      <h2 class="font-semibold text-sm">Ambil Foto Kartu Keluarga</h2>
+     </div>
+     <div class="p-4 space-y-3">
+      <!-- Camera view -->
+      <div id="camera-wrap" class="relative bg-black rounded-xl overflow-hidden aspect-video hidden">
+       <video id="video" autoplay playsinline class="w-full h-full object-contain"></video>
+      </div><!-- Captured image with crop -->
+      <div id="capture-wrap" class="relative bg-black rounded-xl overflow-hidden hidden">
+       <canvas id="captureCanvas" class="w-full"></canvas><!-- Crop overlay -->
+       <div id="crop-region" class="crop-region hidden"></div>
+       <div id="crop-tl" class="crop-handle hidden" style="top:0;left:0"></div>
+       <div id="crop-br" class="crop-handle hidden" style="bottom:0;right:0"></div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+       <button id="btn-start-cam" onclick="startCamera()" class="px-4 py-2 bg-sky-500 hover:bg-sky-400 rounded-lg text-sm font-semibold flex items-center gap-2 transition"><i data-lucide="camera" class="w-4 h-4"></i>Buka Kamera</button> <button id="btn-capture" onclick="capturePhoto()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 rounded-lg text-sm font-semibold flex items-center gap-2 transition hidden"><i data-lucide="aperture" class="w-4 h-4"></i>Ambil Foto</button> <button id="btn-crop" onclick="applyCrop()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-lg text-sm font-semibold flex items-center gap-2 transition hidden"><i data-lucide="crop" class="w-4 h-4"></i>Crop &amp; OCR</button> <button id="btn-ocr-full" onclick="runOCR(false)" class="px-4 py-2 bg-violet-500 hover:bg-violet-400 rounded-lg text-sm font-semibold flex items-center gap-2 transition hidden"><i data-lucide="scan-line" class="w-4 h-4"></i>OCR Tanpa Crop</button> <button id="btn-retake" onclick="retakePhoto()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold flex items-center gap-2 transition hidden"><i data-lucide="refresh-cw" class="w-4 h-4"></i>Ulangi</button>
+      </div>
+     </div>
+    </section><!-- Loading overlay -->
+    <div id="ocr-loading" class="hidden bg-slate-900 rounded-2xl border border-slate-800 p-8 text-center space-y-3">
+     <div class="inline-block w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+     <p class="text-sky-300 font-semibold text-sm">Memproses OCR... Mohon tunggu</p>
+     <p id="ocr-progress" class="text-slate-400 text-xs">0%</p>
+    </div><!-- Step 2: Form -->
+    <section class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+     <div class="px-5 py-3 border-b border-slate-800 flex items-center gap-2">
+      <span class="w-6 h-6 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center justify-center">2</span>
+      <h2 class="font-semibold text-sm">Data Kartu Keluarga</h2>
+     </div>
+     <form id="kk-form" class="p-4 space-y-4" onsubmit="handleSubmit(event)">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div>
+        <label for="inp-nokk" class="block text-xs font-semibold text-slate-400 mb-1">No. KK</label> <input id="inp-nokk" type="text" maxlength="16" placeholder="16 digit angka" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+        <p id="err-nokk" class="text-red-400 text-xs mt-1 hidden"></p>
+       </div>
+       <div>
+        <label for="inp-kepala" class="block text-xs font-semibold text-slate-400 mb-1">Nama Kepala Keluarga</label> <input id="inp-kepala" type="text" placeholder="Nama lengkap" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
        </div>
       </div>
       <div>
-       <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-       <div class="relative">
-        <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i> <input id="login-pass" type="password" autocomplete="current-password" placeholder="Masukkan password" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm">
+       <label for="inp-alamat" class="block text-xs font-semibold text-slate-400 mb-1">Alamat</label> <input id="inp-alamat" type="text" placeholder="Alamat lengkap" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+      </div><!-- Anggota Keluarga -->
+      <div class="border border-slate-700 rounded-xl p-4 space-y-3">
+       <div class="flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-slate-300">Anggota Keluarga</h3><button type="button" onclick="addAnggota()" class="text-xs bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 px-3 py-1 rounded-lg font-semibold transition">+ Tambah</button>
        </div>
+       <div id="anggota-list" class="space-y-3"></div>
       </div>
-      <div>
-       <label class="block text-sm font-medium text-gray-700 mb-1">Login Sebagai</label> <select id="login-role" autocomplete="off" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"> <option value="" disabled selected>Pilih peran</option> <option value="admin">Admin Desa</option> <option value="rt">Ketua RT</option> <option value="penduduk">Penduduk</option> </select>
-      </div><button type="submit" class="w-full btn-primary text-white py-2.5 rounded-lg font-semibold text-sm">Masuk</button>
+      <div class="flex gap-2">
+       <button type="submit" class="px-5 py-2.5 bg-sky-500 hover:bg-sky-400 rounded-lg text-sm font-bold flex items-center gap-2 transition"><i data-lucide="save" class="w-4 h-4"></i>Simpan Data</button> <button type="button" onclick="resetForm()" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-semibold transition">Reset Form</button>
+      </div>
      </form>
-     <p class="text-center text-xs text-gray-400 mt-6">© 2025 SIMDES Desa Kertasari</p>
-    </div>
-   </div>
-  </div><!-- MAIN APP -->
-  <div id="page-app" class="page w-full" style="height:100%">
-   <!-- Mobile overlay -->
-   <div id="mobile-overlay" class="mobile-overlay" onclick="toggleSidebar()"></div><!-- Sidebar -->
-   <aside id="sidebar" class="sidebar-desktop w-64 bg-gradient-to-b from-primary-900 via-primary-800 to-primary-700 text-white flex-shrink-0 flex flex-col" style="height:100%">
-    <div class="p-5 border-b border-white/10">
-     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center overflow-hidden">
-       <img src="https://iili.io/BUijUns.png" alt="Logo SIMDES" class="w-full h-full object-contain">
+    </section><!-- Step 3: Table -->
+    <section class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+     <div class="px-5 py-3 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+       <span class="w-6 h-6 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center justify-center">3</span>
+       <h2 class="font-semibold text-sm">Data Tersimpan</h2><span id="data-count" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">0</span>
       </div>
-      <div>
-       <h2 class="font-bold text-sm">SIMDES</h2>
-       <p id="sidebar-village" class="text-[10px] text-primary-200">Desa Kertasari</p>
+      <div class="flex gap-2">
+       <button onclick="downloadExcel()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 rounded-lg text-xs font-semibold flex items-center gap-1 transition"><i data-lucide="download" class="w-3 h-3"></i>Excel</button> <button onclick="clearAllData(this)" class="px-3 py-1.5 bg-red-500/20 text-red-300 hover:bg-red-500/30 rounded-lg text-xs font-semibold transition">Hapus Semua</button>
       </div>
      </div>
-    </div>
-    <nav class="flex-1 p-3 space-y-1 overflow-auto">
-     <div class="text-[10px] uppercase tracking-wider text-primary-300 px-3 py-2 font-semibold">
-      Menu Utama
-     </div><button onclick="navigate('dashboard')" class="sidebar-item active flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</button>
-     <div class="text-[10px] uppercase tracking-wider text-primary-300 px-3 py-2 mt-3 font-semibold">
-      Data Kependudukan
-     </div><button onclick="navigate('penduduk')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="penduduk"><i data-lucide="users" class="w-4 h-4"></i>Penduduk</button> <button onclick="navigate('pendatang')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="pendatang"><i data-lucide="user-plus" class="w-4 h-4"></i>Pendatang</button> <button onclick="navigate('pindah')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="pindah"><i data-lucide="truck" class="w-4 h-4"></i>Pindah</button> <button onclick="navigate('meninggal')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="meninggal"><i data-lucide="heart" class="w-4 h-4"></i>Meninggal</button>
-     <div class="text-[10px] uppercase tracking-wider text-primary-300 px-3 py-2 mt-3 font-semibold">
-      Lainnya
-     </div><button onclick="navigate('kk')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium" data-nav="kk"><i data-lucide="file-text" class="w-4 h-4"></i>Kartu Keluarga</button> <button onclick="navigate('users')" class="sidebar-item flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium admin-only" data-nav="users"><i data-lucide="shield" class="w-4 h-4"></i>User</button>
-    </nav>
-    <div class="p-3 border-t border-white/10">
-     <button onclick="logout()" class="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium text-primary-200 hover:text-white transition"><i data-lucide="log-out" class="w-4 h-4"></i>Keluar</button>
-    </div>
-   </aside><!-- Main content -->
-   <div class="flex-1 flex flex-col overflow-hidden">
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-100 px-4 md:px-6 py-3 flex items-center justify-between flex-shrink-0">
-     <div class="flex items-center gap-3">
-      <button onclick="toggleSidebar()" class="md:hidden p-1.5 rounded-lg hover:bg-gray-100"><i data-lucide="menu" class="w-5 h-5 text-gray-600"></i></button>
-      <div>
-       <h1 id="page-title" class="text-lg font-bold text-gray-800">Dashboard</h1>
-       <p id="page-subtitle" class="text-xs text-gray-400">Selamat datang kembali</p>
+     <div class="overflow-x-auto">
+      <table class="w-full text-xs">
+       <thead class="bg-slate-800/60 text-slate-400">
+        <tr>
+         <th class="px-3 py-2 text-left">No</th>
+         <th class="px-3 py-2 text-left">No KK</th>
+         <th class="px-3 py-2 text-left">Kepala Keluarga</th>
+         <th class="px-3 py-2 text-left">Alamat</th>
+         <th class="px-3 py-2 text-left">NIK</th>
+         <th class="px-3 py-2 text-left">Nama Anggota</th>
+         <th class="px-3 py-2 text-left">JK</th>
+         <th class="px-3 py-2 text-left">Waktu</th>
+         <th class="px-3 py-2 text-left">Aksi</th>
+        </tr>
+       </thead>
+       <tbody id="data-table" class="divide-y divide-slate-800"></tbody>
+      </table>
+      <div id="empty-state" class="p-8 text-center text-slate-500 text-sm">
+       Belum ada data tersimpan
       </div>
      </div>
-     <div class="flex items-center gap-3">
-      <button class="relative p-2 rounded-lg hover:bg-gray-100"><i data-lucide="bell" class="w-4 h-4 text-gray-500"></i><span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span></button>
-      <div class="flex items-center gap-2 pl-3 border-l border-gray-200">
-       <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center"><i data-lucide="user" class="w-4 h-4 text-primary-600"></i>
-       </div>
-       <div class="hidden sm:block">
-        <p id="header-user" class="text-sm font-semibold text-gray-700">Admin</p>
-        <p id="header-role" class="text-[10px] text-gray-400">Administrator</p>
-       </div>
-      </div>
-     </div>
-    </header><!-- Content area -->
-    <main id="content-area" class="flex-1 overflow-auto p-4 md:p-6 bg-gray-50/80">
-     <!-- DASHBOARD VIEW -->
-     <div id="view-dashboard" class="view fade-in">
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-       <div class="card-stat bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-        <div class="flex items-center justify-between mb-3">
-         <div class="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center"><i data-lucide="users" class="w-5 h-5 text-primary-600"></i>
-         </div><span class="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full"></span>
-        </div>
-        <p class="text-2xl font-bold text-gray-800">0</p>
-        <p class="text-xs text-gray-400 mt-1">Jumlah Penduduk</p>
-       </div>
-       <div class="card-stat bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-        <div class="flex items-center justify-between mb-3">
-         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center"><i data-lucide="user-plus" class="w-5 h-5 text-blue-500"></i>
-         </div><span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full"></span>
-        </div>
-        <p class="text-2xl font-bold text-gray-800">0</p>
-        <p class="text-xs text-gray-400 mt-1">Pendatang</p>
-       </div>
-       <div class="card-stat bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-        <div class="flex items-center justify-between mb-3">
-         <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center"><i data-lucide="truck" class="w-5 h-5 text-amber-500"></i>
-         </div><span class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full"></span>
-        </div>
-        <p class="text-2xl font-bold text-gray-800">0</p>
-        <p class="text-xs text-gray-400 mt-1">Pindah</p>
-       </div>
-       <div class="card-stat bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-        <div class="flex items-center justify-between mb-3">
-         <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center"><i data-lucide="heart" class="w-5 h-5 text-red-400"></i>
-         </div><span class="text-xs font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full"></span>
-        </div>
-        <p class="text-2xl font-bold text-gray-800">0</p>
-        <p class="text-xs text-gray-400 mt-1">Meninggal</p>
-       </div>
-      </div><!-- Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-       <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-        <h3 class="font-semibold text-gray-700 text-sm mb-4">Statistik Penduduk 2026</h3>
-        <div class="flex items-end gap-2 h-40" id="chart-bars">
-         <div class="flex-1 flex flex-col items-center gap-1">
-          <div class="chart-bar w-full bg-primary-400" style="height:0%"></div><span class="text-[10px] text-gray-400">Jan</span>
-         </div>
-         <div class="flex-1 flex flex-col items-center gap-1">
-          <div class="chart-bar w-full bg-primary-400" style="height:0%"></div><span class="text-[10px] text-gray-400">Feb</span>
-         </div>
-         <div class="flex-1 flex flex-col items-center gap-1">
-          <div class="chart-bar w-full bg-primary-400" style="height:0%"></div><span class="text-[10px] text-gray-400">Mar</span>
-         </div>
-         <div class="flex-1 flex flex-col items-center gap-1">
-          <div class="chart-bar w-full bg-primary-400" style="height:0%"></div><span class="text-[10px] text-gray-400">Apr</span>
-         </div>
-         <div class="flex-1 flex flex-col items-center gap-1">
-          <div class="chart-bar w-full bg-primary-500" style="height:0%"></div><span class="text-[10px] text-gray-400">Mei</span>
-         </div>
-         <div class="flex-1 flex flex-col items-center gap-1">
-          <div class="chart-bar w-full bg-primary-300" style="height:0%"></div><span class="text-[10px] text-gray-400">Jun</span>
-         </div>
-        </div>
-       </div>
-       <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-        <h3 class="font-semibold text-gray-700 text-sm mb-4">Komposisi Penduduk</h3>
-        <div class="space-y-3">
-         <div>
-          <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Laki-laki</span><span class="font-semibold text-gray-700">0 (0%)</span>
-          </div>
-          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-           <div class="h-full bg-accent-500 rounded-full" style="width:0%"></div>
-          </div>
-         </div>
-         <div>
-          <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Perempuan</span><span class="font-semibold text-gray-700">0 (0%)</span>
-          </div>
-          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-           <div class="h-full bg-primary-400 rounded-full" style="width:0%"></div>
-          </div>
-         </div>
-         <div>
-          <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Usia Produktif</span><span class="font-semibold text-gray-700">0 (0%)</span>
-          </div>
-          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-           <div class="h-full bg-amber-400 rounded-full" style="width:0%"></div>
-          </div>
-         </div>
-         <div>
-          <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Anak-anak</span><span class="font-semibold text-gray-700">0 (0%)</span>
-          </div>
-          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-           <div class="h-full bg-purple-400 rounded-full" style="width:0%"></div>
-          </div>
-         </div>
-         <div>
-          <div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Lansia</span><span class="font-semibold text-gray-700">0 (0%)</span>
-          </div>
-          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-           <div class="h-full bg-red-400 rounded-full" style="width:0%"></div>
-          </div>
-         </div>
-        </div>
-       </div>
-      </div><!-- RT Stats for RT role -->
-      <div id="rt-stats" class="hidden grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-       <div data-rt="01" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 01</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="02" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 02</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="03" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 03</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="04" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 04</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="05" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 05</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="06" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 06</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="07" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 07</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="08" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 08</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="09" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 09</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="10" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 10</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="11" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 11</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="12" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 12</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="13" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 13</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="14" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 14</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="15" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 15</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-       <div data-rt="16" class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-center">
-        <p class="text-lg font-bold text-gray-800">RT 16</p>
-        <p class="text-2xl font-bold text-gray-800 rt-count">0</p>
-        <p class="text-xs text-gray-400">Penduduk</p>
-       </div>
-      </div><!-- Recent activity -->
-      <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-       <h3 class="font-semibold text-gray-700 text-sm mb-3">Aktivitas Terbaru</h3>
-       <div id="activity-list" class="space-y-3"></div>
-      </div>
-     </div><!-- PENDUDUK VIEW -->
-     <div id="view-penduduk" class="view hidden fade-in"></div><!-- PENDATANG VIEW -->
-     <div id="view-pendatang" class="view hidden fade-in"></div><!-- PINDAH VIEW -->
-     <div id="view-pindah" class="view hidden fade-in"></div><!-- MENINGGAL VIEW -->
-     <div id="view-meninggal" class="view hidden fade-in"></div><!-- KK VIEW -->
-     <div id="view-kk" class="view hidden fade-in"></div><!-- USERS VIEW -->
-     <div id="view-users" class="view hidden fade-in"></div>
-    </main>
-   </div>
-  </div><!-- MODAL -->
-  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay p-4" style="display:none">
-   <div id="modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90%] overflow-auto fade-in"></div>
-  </div><!-- TOAST -->
-  <div id="toast-container" class="fixed top-4 right-4 z-[60] space-y-2"></div>
+    </section>
+   </main>
+  </div>
   <script>
-// STATE
-let currentUser=null, currentRole='admin', currentView='dashboard', sidebarOpen=false;
-
-// DUMMY DATA
-const pendudukData=[
-{nik:'1234567890123456',nama:'Ahmad Supriyadi',tempat_lahir:'Karawang',tgl_lahir:'15',bln_lahir:'03',thn_lahir:'1985',alamat:'Jl. Merdeka No. 10',rt:'01',rw:'01',jk:'L',status:'Kawin',agama:'Islam',pekerjaan:'Petani',hamil:'Tidak',penyakit:'',stunting:'Tidak',anak_bekerja:'Tidak',sekolah:'Tidak Sekolah',noKK:'12345678901234567890',isKepalaKeluarga:true,familyMembers:[]},
-{nik:'1234567890123457',nama:'Siti Aminah',tempat_lahir:'Karawang',tgl_lahir:'20',bln_lahir:'05',thn_lahir:'1990',alamat:'Jl. Merdeka No. 10',rt:'01',rw:'01',jk:'P',status:'Kawin',agama:'Islam',pekerjaan:'Ibu Rumah Tangga',hamil:'Ya',penyakit:'',stunting:'Tidak',anak_bekerja:'Tidak',sekolah:'Tidak Sekolah',noKK:'12345678901234567890',isKepalaKeluarga:false,familyMembers:[]},
-{nik:'1234567890123458',nama:'Budi Santoso',tempat_lahir:'Karawang',tgl_lahir:'10',bln_lahir:'07',thn_lahir:'2015',alamat:'Jl. Merdeka No. 10',rt:'01',rw:'01',jk:'L',status:'Belum Kawin',agama:'Islam',pekerjaan:'',hamil:'Tidak',penyakit:'',stunting:'Tidak',anak_bekerja:'Tidak',sekolah:'SD',noKK:'12345678901234567890',isKepalaKeluarga:false,familyMembers:[]},
-{nik:'2234567890123456',nama:'Dewi Lestari',tempat_lahir:'Pangkalan',tgl_lahir:'25',bln_lahir:'12',thn_lahir:'1988',alamat:'Jl. Sudirman No. 5',rt:'02',rw:'01',jk:'P',status:'Kawin',agama:'Islam',pekerjaan:'Guru',hamil:'Tidak',penyakit:'',stunting:'Tidak',anak_bekerja:'Tidak',sekolah:'Tidak Sekolah',noKK:'22345678901234567890',isKepalaKeluarga:true,familyMembers:[]},
-{nik:'3234567890123456',nama:'Rudi Hartono',tempat_lahir:'Karawang',tgl_lahir:'05',bln_lahir:'09',thn_lahir:'1975',alamat:'Jl. Ahmad Yani No. 15',rt:'03',rw:'01',jk:'L',status:'Kawin',agama:'Islam',pekerjaan:'Wiraswasta',hamil:'Tidak',penyakit:'Diabetes',stunting:'Tidak',anak_bekerja:'Tidak',sekolah:'Tidak Sekolah',noKK:'32345678901234567890',isKepalaKeluarga:true,familyMembers:[]}
-];
-
-const pendatangData=[];
-
-const pindahData=[];
-
-const meninggalData=[];
-
-const activityData=[];
-
-const rtList=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16'];
-const rtOptionsHTML=rtList.map(rt=>`<option value="${rt}">${rt}</option>`).join('');
-const rtDatabase={penduduk:{},pendatang:{},pindah:{},meninggal:{}};
-
-function renderRtOptions(selected=''){
- return rtList.map(rt=>`<option value="${rt}" ${selected===rt?'selected':''}>${rt}</option>`).join('');
-}
-
-function normalizeRT(value){
- const raw=String(value||'').trim();
- const digits=raw.replace(/\D/g,'');
- if(!digits) return '';
- if(digits.length===1) return '0'+digits;
- if(digits.length===2) return digits;
- if(digits.length===3 && digits.startsWith('0')) return digits.slice(1);
- return digits;
-}
-
-function rebuildRtDatabase(){
- rtList.forEach(rt=>{
-  rtDatabase.penduduk[rt]=[];
-  rtDatabase.pendatang[rt]=[];
-  rtDatabase.pindah[rt]=[];
-  rtDatabase.meninggal[rt]=[];
- });
- [
-  ['penduduk',pendudukData],
-  ['pendatang',pendatangData],
-  ['pindah',pindahData],
-  ['meninggal',meninggalData]
- ].forEach(([key,arr])=>{
-  arr.forEach(item=>{
-   const rt=normalizeRT(item.rt);
-   if(rtList.includes(rt)) rtDatabase[key][rt].push(item);
-  });
- });
-}
-
-function getRTDatabase(type,rt){
- const normalized=normalizeRT(rt);
- return rtDatabase[type]?.[normalized]||[];
-}
-
-function formatRelativeTime(ts){
- const diff=Math.floor((Date.now()-ts)/1000);
- if(diff<60) return 'Baru saja';
- if(diff<3600) return `${Math.floor(diff/60)} menit yang lalu`;
- if(diff<86400) return `${Math.floor(diff/3600)} jam yang lalu`;
- return `${Math.floor(diff/86400)} hari yang lalu`;
-}
-
-function renderRecentActivity(){
- const list=document.getElementById('activity-list');
- if(!list) return;
- if(activityData.length===0){
-  list.innerHTML=`<div class="py-6 text-center text-sm text-gray-400">Belum ada aktivitas terbaru.</div>`;
-  return;
- }
- list.innerHTML=activityData.slice(0,5).map(item=>`
-  <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
-   <div class="w-8 h-8 rounded-full bg-${item.color}-50 flex items-center justify-center flex-shrink-0"><i data-lucide="${item.icon}" class="w-3.5 h-3.5 text-${item.color}-500"></i></div>
-   <div class="flex-1 min-w-0">
-    <p class="text-sm text-gray-700 truncate">${item.title}</p>
-    <p class="text-[10px] text-gray-400">${formatRelativeTime(item.timestamp)}</p>
-   </div>
-  </div>`).join('');
- lucide.createIcons();
-}
-
-function addActivity(title,icon='activity',color='primary'){
- activityData.unshift({title,icon,color,timestamp:Date.now()});
- if(activityData.length>10) activityData.length=10;
- if(currentView==='dashboard') renderRecentActivity();
-}
-
-// KK DIHITUNG OTOMATIS DARI PENDUDUK DAN PENDATANG
-function generateKKData(){
-const kkMap=new Map();
-const activeNIK=new Set();
-
-// Tandai NIK yang masih aktif (tidak pindah/meninggal)
-const pindahNIK=pindahData.map(p=>p.nik);
-const meninggalNIK=meninggalData.map(m=>m.nik);
-
-pendudukData.forEach(p=>{
-if(!pindahNIK.includes(p.nik)&&!meninggalNIK.includes(p.nik)){
-activeNIK.add(p.nik);
-}
-});
-
-pendatangData.forEach(p=>{
-if(!pindahNIK.includes(p.nik)&&!meninggalNIK.includes(p.nik)){
-activeNIK.add(p.nik);
-}
-});
-
-// Buat KK dari data aktif
-[...pendudukData,...pendatangData].forEach(person=>{
-if(!activeNIK.has(person.nik))return;
-const kkNo=person.noKK;
-if(!kkMap.has(kkNo)){
-kkMap.set(kkNo,{noKK:kkNo,kepala:person.nama,alamat:person.alamat,rt:person.rt,rw:person.rw,anggota:[]});
-}
-kkMap.get(kkNo).anggota.push(person);
-});
-
-return Array.from(kkMap.values()).map(kk=>({...kk,jml:kk.anggota.length}));
-}
-
-// SYNC DATA: Pendatang masuk ke penduduk, pindah/meninggal keluar dari penduduk
-function syncData(){
-// Konversi pendatang ke penduduk
-pendatangData.forEach(p=>{
-if(!pendudukData.find(pd=>pd.nik===p.nik)){
-pendudukData.push({
-nik:p.nik,
-nama:p.nama,
-tempat_lahir:p.tempat_lahir,
-tgl_lahir:p.tgl_lahir,
-bln_lahir:p.bln_lahir,
-thn_lahir:p.thn_lahir,
-alamat:'(Belum diisi)',
-rt:normalizeRT(p.rt),
-rw:p.rw||'01',
-jk:'L',
-status:'Belum Kawin',
-agama:'Islam',
-pekerjaan:'',
-hamil:'Tidak',
-penyakit:'',
-stunting:'Tidak',
-anak_bekerja:'Tidak',
-sekolah:'Tidak Sekolah',
-noKK:p.noKK,
-familyMembers:[]
-});
-}
-});
-
-// Hapus pindah dari penduduk
-pindahData.forEach(p=>{
-const idx=pendudukData.findIndex(pd=>pd.nik===p.nik);
-if(idx!==-1) pendudukData.splice(idx,1);
-});
-
-// Hapus meninggal dari penduduk
-meninggalData.forEach(m=>{
-const idx=pendudukData.findIndex(pd=>pd.nik===m.nik);
-if(idx!==-1) pendudukData.splice(idx,1);
-});
-
-rebuildRtDatabase();
-}
-
-const usersData=[
-{username:'admin',nama:'Administrator',role:'Admin Desa',status:'Aktif',password:'admin'},
-{username:'rt01',nama:'Nana Supriatna',role:'Ketua RT 01',status:'Aktif',password:'rt01'},
-{username:'rt02',nama:'Awang Awangsih',role:'Ketua RT 02',status:'Aktif',password:'rt02'},
-{username:'rt03',nama:'Surdin',role:'Ketua RT 03',status:'Aktif',password:'rt03'},
-{username:'rt04',nama:'Hasan',role:'Ketua RT 04',status:'Aktif',password:'rt04'},
-{username:'rt05',nama:'Suryana',role:'Ketua RT 05',status:'Aktif',password:'rt05'},
-{username:'rt06',nama:'Ucep',role:'Ketua RT 06',status:'Aktif',password:'rt06'},
-{username:'rt07',nama:'Eneng Siti Rohmah',role:'Ketua RT 07',status:'Aktif',password:'rt07'},
-{username:'rt08',nama:'Dasa',role:'Ketua RT 08',status:'Aktif',password:'rt08'},
-{username:'rt09',nama:'Emad',role:'Ketua RT 09',status:'Aktif',password:'rt09'},
-{username:'rt10',nama:'Sarmin',role:'Ketua RT 010',status:'Aktif',password:'rt10'},
-{username:'rt11',nama:'Dede Risman Saepulloh',role:'Ketua RT 011',status:'Aktif',password:'rt11'},
-{username:'rt12',nama:'Edi Setia Budi',role:'Ketua RT 012',status:'Aktif',password:'rt12'},
-{username:'rt13',nama:'Dayat',role:'Ketua RT 013',status:'Aktif',password:'rt13'},
-{username:'rt14',nama:'Nerwin',role:'Ketua RT 014',status:'Aktif',password:'rt14'},
-{username:'rt15',nama:'Hendar Ridwan',role:'Ketua RT 015',status:'Aktif',password:'rt15'},
-{username:'rt16',nama:'Tini Kartini',role:'Ketua RT 016',status:'Aktif',password:'rt16'}
-];
-
-// LOGIN
-document.getElementById('login-form').addEventListener('submit',function(e){
-e.preventDefault();
-const userInput=document.getElementById('login-user').value.trim();
-const passInput=document.getElementById('login-pass').value.trim();
-const roleSelect=document.getElementById('login-role');
-const role=roleSelect.value;
-
-if(!userInput || !passInput || !role){
- alert('Harap isi semua field: Username, Password, dan Pilih Role.');
- return;
-}
-
-let user = null;
-if(role === 'admin' || role === 'rt'){
- user = usersData.find(u => u.username === userInput && u.password === passInput && u.status === 'Aktif');
- if(!user){
-  alert('Username atau password salah, atau akun tidak aktif.');
-  return;
- }
- if((role === 'admin' && user.username !== 'admin') || (role === 'rt' && !user.username.startsWith('rt'))){
-  alert('Role tidak sesuai dengan akun user.');
-  return;
- }
-} else if(role === 'penduduk'){
- user = pendudukData.find(p => p.nik === userInput && (p.tgl_lahir + p.bln_lahir + p.thn_lahir) === passInput);
- if(!user){
-  alert('NIK atau tanggal lahir salah.');
-  return;
- }
- // Set additional properties for penduduk
- user.nama = user.nama;
- user.role = 'Penduduk';
- user.status = 'Aktif'; // Assume active
-}
-
-currentUser = user;
-currentRole = role;
-
-document.getElementById('page-login').classList.remove('active');
-document.getElementById('page-app').classList.add('active');
-document.getElementById('header-user').textContent = user.nama;
-document.getElementById('header-role').textContent = user.role;
-
-if(role==='rt'){
- document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
- document.getElementById('rt-stats').classList.remove('hidden');
-}else if(role==='penduduk'){
- document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
- document.getElementById('rt-stats').classList.add('hidden');
- // Hide other menus if needed
- document.querySelectorAll('[data-nav="penduduk"], [data-nav="pendatang"], [data-nav="pindah"], [data-nav="meninggal"], [data-nav="kk"], [data-nav="users"]').forEach(el=>el.style.display='none');
-}else{
- document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
- document.getElementById('rt-stats').classList.add('hidden');
-}
-
-document.getElementById('login-user').value='';
-document.getElementById('login-pass').value='';
-roleSelect.selectedIndex = 0;
-navigate('dashboard');
-lucide.createIcons();
-});
-
-function logout(){
-currentUser = null;
-currentRole = 'admin';
-document.getElementById('page-app').classList.remove('active');
-document.getElementById('page-login').classList.add('active');
-document.getElementById('login-form').reset();
-document.getElementById('login-role').selectedIndex = 0;
-currentView='dashboard';
-}
-
-function toggleSidebar(){
-const sb=document.getElementById('sidebar');
-const ov=document.getElementById('mobile-overlay');
-sidebarOpen=!sidebarOpen;
-sb.classList.toggle('open',sidebarOpen);
-ov.classList.toggle('active',sidebarOpen);
-}
-
-// UPDATE DASHBOARD STATS
-function updateDashboardStats(){
-syncData();
-
-let filteredPenduduk = pendudukData;
-let filteredPendatang = pendatangData;
-let filteredPindah = pindahData;
-let filteredMeninggal = meninggalData;
-
-if(currentRole === 'rt' && currentUser){
- const userRt = currentUser.username.replace('rt', '').padStart(2, '0');
- filteredPenduduk = pendudukData.filter(p => normalizeRT(p.rt) === userRt);
- filteredPendatang = pendatangData.filter(p => normalizeRT(p.rt) === userRt);
- filteredPindah = pindahData.filter(p => normalizeRT(p.rt) === userRt);
- filteredMeninggal = meninggalData.filter(p => normalizeRT(p.rt) === userRt);
-} else if(currentRole === 'penduduk' && currentUser){
- // For penduduk, show only their own data or related
- filteredPenduduk = pendudukData.filter(p => p.nik === currentUser.nik);
- filteredPendatang = pendatangData.filter(p => p.nik === currentUser.nik);
- filteredPindah = pindahData.filter(p => p.nik === currentUser.nik);
- filteredMeninggal = meninggalData.filter(p => p.nik === currentUser.nik);
-}
-
-const totalPenduduk=filteredPenduduk.length;
-const totalPendatang=filteredPendatang.length;
-const totalPindah=filteredPindah.length;
-const totalMeninggal=filteredMeninggal.length;
-
-// Update stat cards
-const stats=[
-{id:0,value:totalPenduduk,color:'primary'},
-{id:1,value:totalPendatang,color:'blue'},
-{id:2,value:totalPindah,color:'amber'},
-{id:3,value:totalMeninggal,color:'red'}
-];
-document.querySelectorAll('.card-stat').forEach((card,i)=>{
-if(i<4){
-const stat=stats[i];
-card.querySelector('p:first-of-type').textContent=stat.value.toLocaleString('id-ID');
-}
-});
-
-// Update charts and composition
-updateChartsAndComposition(filteredPenduduk);
-updateRtStats();
-renderRecentActivity();
-}
-
-function updateRtStats(){
- const rtCounts={};
- rtList.forEach(rt=>{rtCounts[rt]=0;});
- pendudukData.forEach(p=>{if(p.rt){const key=normalizeRT(p.rt);if(rtCounts[key]!==undefined) rtCounts[key]++;}});
- document.querySelectorAll('#rt-stats [data-rt]').forEach(card=>{
-  const rt=normalizeRT(card.dataset.rt);
-  const count=rtCounts[rt]||0;
-  const countEl=card.querySelector('.rt-count');
-  if(countEl) countEl.textContent=count.toLocaleString('id-ID');
- });
-}
-
-function refreshCurrentView(){
- rebuildRtDatabase();
- if(currentView==='dashboard'){
-  updateDashboardStats();
- } else if(currentView==='penduduk'){
-  renderPenduduk();
- } else if(['pendatang','pindah','meninggal','kk','users'].includes(currentView)){
-  navigate(currentView);
- }
-}
-
-function updateChartsAndComposition(filteredData = pendudukData){
-const totalPenduduk=filteredData.length;
-const laki=filteredData.filter(p=>p.jk==='L').length;
-const perempuan=filteredData.filter(p=>p.jk==='P').length;
-const usiaProd=filteredData.filter(p=>{
-const thn=parseInt(p.thn_lahir)||2000;
-const usia=2025-thn;
-return usia>=15&&usia<=64;
-}).length;
-const anak=filteredData.filter(p=>{
-const thn=parseInt(p.thn_lahir)||2000;
-const usia=2025-thn;
-return usia<15;
-}).length;
-const lansia=filteredData.filter(p=>{
-const thn=parseInt(p.thn_lahir)||2000;
-const usia=2025-thn;
-return usia>64;
-}).length;
-
-// Calculate percentages
-const lakiPct=totalPenduduk>0?(laki/totalPenduduk*100).toFixed(1):0;
-const perempuanPct=totalPenduduk>0?(perempuan/totalPenduduk*100).toFixed(1):0;
-const usiaProdPct=totalPenduduk>0?(usiaProd/totalPenduduk*100).toFixed(1):0;
-const anakPct=totalPenduduk>0?(anak/totalPenduduk*100).toFixed(1):0;
-const lansiaPct=totalPenduduk>0?(lansia/totalPenduduk*100).toFixed(1):0;
-
-const compositions=[
-{label:'Laki-laki',count:laki,pct:lakiPct,color:'accent-500'},
-{label:'Perempuan',count:perempuan,pct:perempuanPct,color:'primary-400'},
-{label:'Usia Produktif',count:usiaProd,pct:usiaProdPct,color:'amber-400'},
-{label:'Anak-anak',count:anak,pct:anakPct,color:'purple-400'},
-{label:'Lansia',count:lansia,pct:lansiaPct,color:'red-400'}
-];
-
-// Update all composition bars
-document.querySelectorAll('[id="view-dashboard"] .space-y-3 > div').forEach((row,i)=>{
-if(compositions[i]){
-const comp=compositions[i];
-const countSpan=row.querySelector('.flex.justify-between span:last-child');
-if(countSpan) countSpan.textContent=`${comp.count} (${comp.pct}%)`;
-const bar=row.querySelector('.h-full');
-if(bar){
-bar.style.width=comp.pct+'%';
-}
-}
-});
-}
-
-// NAVIGATION
-function navigate(view){
-currentView=view;
-document.querySelectorAll('.sidebar-item').forEach(el=>{el.classList.toggle('active',el.dataset.nav===view)});
-document.querySelectorAll('.view').forEach(el=>el.classList.add('hidden'));
-const titles={dashboard:'Dashboard',penduduk:'Data Penduduk',pendatang:'Data Pendatang',pindah:'Data Pindah',meninggal:'Data Meninggal',kk:'Kartu Keluarga',users:'Manajemen User'};
-const subtitles={dashboard:'Selamat datang kembali',penduduk:'Kelola data penduduk desa',pendatang:'Data warga pendatang',pindah:'Data warga pindah',meninggal:'Data warga meninggal',kk:'Data kartu keluarga',users:'Kelola akun pengguna'};
-document.getElementById('page-title').textContent=titles[view]||'Dashboard';
-document.getElementById('page-subtitle').textContent=subtitles[view]||'';
-// Render view
-if(view==='penduduk') renderPenduduk();
-else if(view==='pendatang') renderCategory('pendatang',pendatangData,'blue',['NIK','Nama','Tempat Lahir','Tgl Lahir','Asal','Tgl Datang','RT'],r=>`<td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium">${r.nama}</td><td class="px-3 py-2.5 text-xs">${r.tempat_lahir}</td><td class="px-3 py-2.5 text-xs">${r.tgl_lahir}/${r.bln_lahir}/${r.thn_lahir}</td><td class="px-3 py-2.5 text-xs">${r.asal}</td><td class="px-3 py-2.5 text-xs">${r.tglDatang}</td><td class="px-3 py-2.5"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">RT ${r.rt}</span></td>`);
-else if(view==='pindah') renderCategory('pindah',pindahData,'amber',['NIK','Nama','Tempat Lahir','Tgl Lahir','Tujuan','Tgl Pindah','RT'],r=>`<td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium">${r.nama}</td><td class="px-3 py-2.5 text-xs">${r.tempat_lahir}</td><td class="px-3 py-2.5 text-xs">${r.tgl_lahir}/${r.bln_lahir}/${r.thn_lahir}</td><td class="px-3 py-2.5 text-xs">${r.tujuan}</td><td class="px-3 py-2.5 text-xs">${r.tglPindah}</td><td class="px-3 py-2.5"><span class="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">RT ${r.rt}</span></td>`);
-else if(view==='meninggal') renderCategory('meninggal',meninggalData,'red',['NIK','Nama','Tempat Lahir','Tgl Lahir','Tgl Meninggal','Usia','Sebab'],r=>`<td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium">${r.nama}</td><td class="px-3 py-2.5 text-xs">${r.tempat_lahir}</td><td class="px-3 py-2.5 text-xs">${r.tgl_lahir}/${r.bln_lahir}/${r.thn_lahir}</td><td class="px-3 py-2.5 text-xs">${r.tglMeninggal}</td><td class="px-3 py-2.5 text-xs">${r.usia} th</td><td class="px-3 py-2.5 text-xs">${r.sebab}</td>`);
-else if(view==='kk') renderKK();
-else if(view==='users') renderUsers();
-document.getElementById('view-'+view).classList.remove('hidden');
-if(view==='dashboard') updateDashboardStats();
-if(sidebarOpen) toggleSidebar();
-lucide.createIcons();
-}
-
-// RENDER PENDUDUK
-function renderPenduduk(){
-let dataToUse = pendudukData;
-if(currentRole === 'rt' && currentUser){
- const userRt = currentUser.username.replace('rt', '').padStart(2, '0');
- dataToUse = pendudukData.filter(p => normalizeRT(p.rt) === userRt);
-} else if(currentRole === 'penduduk' && currentUser){
- dataToUse = pendudukData.filter(p => p.nik === currentUser.nik);
-}
-
-const v=document.getElementById('view-penduduk');
-v.innerHTML=`
-<div class="flex flex-col sm:flex-row gap-3 mb-4">
-<div class="relative flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i><input id="search-penduduk" type="text" placeholder="Cari nama atau NIK..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" oninput="filterPenduduk()"></div>
-${currentRole === 'admin' ? `<select id="filter-rt" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" onchange="filterPenduduk()"><option value="">Semua RT</option>${rtOptionsHTML}</select>` : ''}
-${currentRole === 'admin' ? `<button onclick="showFormPenduduk()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 justify-center"><i data-lucide="plus" class="w-4 h-4"></i>Tambah</button>` : ''}
-</div>
-<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-<div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100"><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">NIK</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Alamat</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">RT</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Lansia</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden sm:table-cell">Status</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Hamil</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Penyakit</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Stunting</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Anak Kerja</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase hidden md:table-cell">Sekolah</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody id="tbody-penduduk"></tbody></table></div>
-</div>`;
-filterPenduduk(dataToUse);
-}
-
-function filterPenduduk(dataToUse = pendudukData){
-if(currentRole === 'rt' && currentUser && !dataToUse){
- const userRt = currentUser.username.replace('rt', '').padStart(2, '0');
- dataToUse = pendudukData.filter(p => normalizeRT(p.rt) === userRt);
-} else if(currentRole === 'penduduk' && currentUser && !dataToUse){
- dataToUse = pendudukData.filter(p => p.nik === currentUser.nik);
-} else if(!dataToUse){
- dataToUse = pendudukData;
-}
-
-const s=(document.getElementById('search-penduduk')?.value||'').toLowerCase();
-const rt=document.getElementById('filter-rt')?.value||'';
-const filtered=dataToUse.filter(r=>{
-const matchSearch=r.nama.toLowerCase().includes(s)||r.nik.includes(s);
-const matchRT=!rt||normalizeRT(r.rt)===normalizeRT(rt);
-return matchSearch&&matchRT;
-});
-const tbody=document.getElementById('tbody-penduduk');
-if(!tbody)return;
-tbody.innerHTML=filtered.map(r=>{
-const idx=pendudukData.findIndex(pd=>pd.nik===r.nik);
-return `<tr class="table-row border-b border-gray-50"><td class="px-3 py-2.5 text-xs font-mono">${r.nik}</td><td class="px-3 py-2.5 text-xs font-medium text-gray-800">${r.nama}${r.isKepalaKeluarga?'<span class="ml-2 text-[10px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-medium">Kepala KK</span>':''}</td><td class="px-3 py-2.5 text-xs text-gray-500 hidden md:table-cell">${r.alamat||'-'}</td><td class="px-3 py-2.5"><span class="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">RT ${r.rt||'-'}</span></td><td class="px-3 py-2.5 text-xs hidden sm:table-cell">${r.lansia?'Ya':'Tidak'}</td><td class="px-3 py-2.5 text-xs hidden sm:table-cell">${r.status||'-'}</td><td class="px-3 py-2.5 text-xs hidden md:table-cell">${r.hamil||'Tidak'}</td><td class="px-3 py-2.5 text-xs hidden md:table-cell">${r.penyakit? r.penyakit : '-'}</td><td class="px-3 py-2.5 text-xs hidden md:table-cell">${r.stunting||'Tidak'}</td><td class="px-3 py-2.5 text-xs hidden md:table-cell">${r.anak_bekerja||'Tidak'}</td><td class="px-3 py-2.5 text-xs hidden md:table-cell">${r.sekolah||'-'}</td><td class="px-3 py-2.5"><div class="flex gap-1">${currentRole === 'admin' ? `<button onclick="showFormPenduduk('${r.nik}')" class="p-2 rounded-lg hover:bg-blue-100 bg-blue-50 text-blue-600 hover:text-blue-700 transition font-medium flex items-center gap-1.5" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i><span class="text-xs hidden sm:inline">Edit</span></button><button onclick="confirmDelete('penduduk','${r.nik}')" class="p-2 rounded-lg hover:bg-red-100 text-red-500 hover:text-red-600 transition" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}</div></td></tr>`;
-}).join('');
-lucide.createIcons();
-}
-
-// RENDER CATEGORY TABLES
-function renderCategory(id,data,color,headers,rowFn){
-const icons={pendatang:'user-plus',pindah:'truck',meninggal:'heart'};
-const labels={pendatang:'Pendatang',pindah:'Pindah',meninggal:'Meninggal'};
-const v=document.getElementById('view-'+id);
-v.innerHTML=`
-<div class="flex flex-col sm:flex-row gap-3 mb-4">
-<div class="relative flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i><input id="search-${id}" type="text" placeholder="Cari data..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-${color}-500 outline-none" oninput="filterCategory('${id}')"></div>
-<button onclick="showFormGeneric('${id}')" class="bg-${color}-500 hover:bg-${color}-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 justify-center transition"><i data-lucide="plus" class="w-4 h-4"></i>Tambah ${labels[id]}</button>
-</div>
-<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-<div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100">${headers.map(h=>`<th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">${h}</th>`).join('')}<th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody>${data.map((r,i)=>`<tr class="table-row border-b border-gray-50">${rowFn(r)}<td class="px-3 py-2.5"><div class="flex gap-1"><button onclick="showFormGeneric('${id}',${i})" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button><button onclick="confirmDelete('${id}',${i})" class="p-1.5 rounded-lg hover:bg-red-50 text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div></td></tr>`).join('')}</tbody></table></div>
-</div>`;
-lucide.createIcons();
-}
-
-function filterCategory(type){
-const q=(document.getElementById('search-'+type)?.value||'').toLowerCase();
-const rows=document.querySelectorAll('#view-'+type+' tbody tr');
-rows.forEach(row=>{
-row.style.display=row.textContent.toLowerCase().includes(q)?'':'none';
-});
-}
-
-function renderKK(){
-const kkData=generateKKData();
-const v=document.getElementById('view-kk');
-v.innerHTML=`
-<div class="flex flex-col sm:flex-row gap-3 mb-4">
-<div class="relative flex-1"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i><input id="search-kk" type="text" placeholder="Cari No. KK atau kepala keluarga..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" oninput="filterKK()"></div>
-<button onclick="showFormKK()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 justify-center"><i data-lucide="plus" class="w-4 h-4"></i>Tambah KK</button>
-</div>
-<div class="grid gap-3" id="kk-list">${kkData.map(k=>`
-<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden kk-card" data-kk-no="${k.noKK}" data-kk-kepala="${k.kepala}">
-<div class="p-4 flex flex-col sm:flex-row sm:items-center gap-3 border-b border-gray-100">
-<div class="w-12 h-12 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0"><i data-lucide="file-text" class="w-6 h-6 text-primary-600"></i></div>
-<div class="flex-1 min-w-0">
-<p class="text-sm font-semibold text-gray-800">${k.kepala}</p>
-<p class="text-xs text-gray-400 font-mono">No. KK: ${k.noKK}</p>
-<p class="text-xs text-gray-500 mt-0.5">${k.alamat} • RT ${k.rt}/RW ${k.rw}</p>
-</div>
-<div class="flex items-center gap-2">
-<span class="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full font-medium">${k.jml} Anggota</span>
-<button onclick="showKKDetail('${k.noKK}')" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
-<button onclick="confirmDeleteKK('${k.noKK}','${k.kepala}')" class="p-1.5 rounded-lg hover:bg-red-50 text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-</div>
-</div>
-<div id="kk-detail-${k.noKK}" class="hidden">
-<div class="px-4 py-3 space-y-2 bg-gray-50">
-${k.anggota.map(a=>`
-<div class="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-100">
-<div class="w-9 h-9 rounded-full bg-accent-50 flex items-center justify-center flex-shrink-0">
-<i data-lucide="user" class="w-4 h-4 text-accent-500"></i>
-</div>
-<div class="flex-1 min-w-0">
-<p class="text-xs font-semibold text-gray-800">${a.nama}</p>
-<p class="text-[10px] text-gray-400">${a.nik}</p>
-<p class="text-[10px] text-gray-500">${a.status||'-'} • ${a.jk==='L'?'Laki-laki':'Perempuan'} • ${a.usia?`${a.usia} th`:'-'} ${a.pekerjaan?`• ${a.pekerjaan}`:''}</p>
-<div class="mt-2 grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
-<span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Hamil: ${a.hamil||'Tidak'}</span>
-<span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Penyakit: ${a.penyakit? a.penyakit : 'Tidak'}</span>
-<span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Stunting: ${a.stunting||'Tidak'}</span>
-<span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Anak Kerja: ${a.anak_bekerja||'Tidak'}</span>
-<span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-1 rounded-full">Sekolah: ${a.sekolah||'-'}</span>
-</div>
-</div>
-</div>
-`).join('')}
-</div>
-</div>
-`).join('')}</div>`;
-lucide.createIcons();
-}
-
-function filterKK(){
-const s=(document.getElementById('search-kk')?.value||'').toLowerCase();
-const cards=document.querySelectorAll('.kk-card');
-cards.forEach(card=>{
-const noKK=card.dataset.kkNo.toLowerCase();
-const kepala=card.dataset.kkKepala.toLowerCase();
-const matchSearch=noKK.includes(s)||kepala.includes(s);
-card.style.display=matchSearch?'':'none';
-});
-}
-
-function showFormKK(){
-openModal(`
-<div class="p-6 max-h-[85vh] overflow-y-auto">
-<h2 class="text-lg font-bold text-gray-800 mb-4">Tambah Kartu Keluarga</h2>
-<form id="form-kk" class="space-y-4">
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-<div><label class="block text-xs font-medium text-gray-600 mb-1">No. KK</label><input name="noKK" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="16 digit No. KK"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Nama Kepala Keluarga</label><input name="kepala" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Alamat</label><input name="alamat" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option>01</option><option>02</option><option>03</option><option>04</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input name="rw" value="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-</div>
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK Kepala</label><input name="nik" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="date" name="tgl_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-</div>
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Jenis Kelamin</label><select name="jk" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option>Belum Kawin</option><option>Kawin</option><option>Cerai</option></select></div>
-</div>
-<div class="flex gap-2 pt-3">
-<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
-<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
-</div>
-</form>
-</div>`);
-lucide.createIcons();
-document.getElementById('form-kk').addEventListener('submit',function(e){
-e.preventDefault();
-const obj=Object.fromEntries(new FormData(this));
-pendudukData.push({
-nik:obj.nik,
-nama:obj.kepala,
-tempat_lahir:'',
-tgl_lahir:obj.tgl_lahir||'',
-bln_lahir:'',
-thn_lahir:'',
-alamat:obj.alamat||'',
-rt:obj.rt||'01',
-rw:obj.rw||'01',
-jk:obj.jk||'L',
-status:obj.status||'Belum Kawin',
-agama:'Islam',
-pekerjaan:'',
-hamil:'Tidak',
-penyakit:'',
-stunting:'Tidak',
-anak_bekerja:'Tidak',
-sekolah:'Tidak Sekolah',
-noKK:obj.noKK||'',
-isKepalaKeluarga:true,
-familyMembers:[]
-});
-closeModal();
-showToast('KK berhasil ditambahkan','success');
-navigate('kk');
-updateDashboardStats();
-});
-}
-
-function showFormUser(idx){
-const isEdit=idx!==undefined;
-const user=isEdit?usersData[idx]:{username:'',nama:'',role:'Admin Desa',status:'Aktif'};
-openModal(`
-<div class="p-6 max-h-[85vh] overflow-y-auto">
-<h2 class="text-lg font-bold text-gray-800 mb-4">${isEdit?'Edit':'Tambah'} User</h2>
-<form id="form-user" class="space-y-4">
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Username</label><input name="username" value="${user.username||''}" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${user.nama||''}" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Role</label><select name="role" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Admin Desa" ${user.role==='Admin Desa'?'selected':''}>Admin Desa</option><option value="Ketua RT 01" ${user.role==='Ketua RT 01'?'selected':''}>Ketua RT 01</option><option value="Ketua RT 02" ${user.role==='Ketua RT 02'?'selected':''}>Ketua RT 02</option><option value="Ketua RT 03" ${user.role==='Ketua RT 03'?'selected':''}>Ketua RT 03</option><option value="Ketua RT 04" ${user.role==='Ketua RT 04'?'selected':''}>Ketua RT 04</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Aktif" ${user.status==='Aktif'?'selected':''}>Aktif</option><option value="Non-aktif" ${user.status==='Non-aktif'?'selected':''}>Non-aktif</option></select></div>
-</div>
-<div class="flex gap-2 pt-3">
-<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
-<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
-</div>
-</form>
-</div>`);
-lucide.createIcons();
-document.getElementById('form-user').addEventListener('submit',function(e){
-e.preventDefault();
-const payload=Object.fromEntries(new FormData(this));
-if(isEdit){
-Object.assign(usersData[idx],payload);
-showToast('User berhasil diperbarui','success');
-}else{
-usersData.push(payload);
-showToast('User berhasil ditambahkan','success');
-}
-closeModal();
-navigate('users');
-});
-}
-
-function showKKDetail(noKK){
-const detail=document.getElementById('kk-detail-'+noKK);
-detail.classList.toggle('hidden');
-}
-
-function confirmDeleteKK(noKK,kepala){
-openModal(`
-<div class="p-6 text-center">
-<div class="w-14 h-14 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center"><i data-lucide="alert-triangle" class="w-7 h-7 text-red-500"></i></div>
-<h3 class="text-lg font-bold text-gray-800 mb-2">Hapus Kartu Keluarga?</h3>
-<p class="text-sm text-gray-500 mb-2">Nomor KK: <span class="font-mono font-semibold">${noKK}</span></p>
-<p class="text-sm text-gray-500 mb-5">Kepala Keluarga: <span class="font-semibold">${kepala}</span></p>
-<p class="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg mb-5">Data anggota keluarga akan dipindahkan ke status pendatang.</p>
-<div class="flex gap-2">
-<button onclick="doDeleteKK('${noKK}')" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-semibold transition">Ya, Hapus</button>
-<button onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium transition">Batal</button>
-</div>
-</div>`);
-lucide.createIcons();
-}
-
-function doDeleteKK(noKK){
-// Hapus anggota keluarga dari penduduk
-const kkPenduduk=pendudukData.filter(p=>p.noKK===noKK);
-kkPenduduk.forEach(p=>{
-const idx=pendudukData.findIndex(pd=>pd.nik===p.nik);
-if(idx!==-1) pendudukData.splice(idx,1);
-});
-
-// Hapus anggota keluarga dari pendatang
-const kkPendatang=pendatangData.filter(p=>p.noKK===noKK);
-kkPendatang.forEach(p=>{
-const idx=pendatangData.findIndex(pd=>pd.nik===p.nik);
-if(idx!==-1) pendatangData.splice(idx,1);
-});
-
-closeModal();
-showToast('Kartu Keluarga berhasil dihapus','success');
-navigate('kk');
-updateDashboardStats();
-}
-
-function renderUsers(){
-const v=document.getElementById('view-users');
-v.innerHTML=`
-<div class="flex justify-end mb-4"><button onclick="showFormUser()" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i>Tambah User</button></div>
-<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-<div class="overflow-x-auto"><table class="w-full"><thead><tr class="bg-gray-50 border-b border-gray-100"><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Username</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Nama</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Role</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Status</th><th class="px-3 py-2.5 text-left text-[10px] font-semibold text-gray-500 uppercase">Aksi</th></tr></thead><tbody>${usersData.map((u,i)=>`<tr class="table-row border-b border-gray-50"><td class="px-3 py-2.5 text-xs font-mono">${u.username}</td><td class="px-3 py-2.5 text-xs font-medium">${u.nama}</td><td class="px-3 py-2.5 text-xs">${u.role}</td><td class="px-3 py-2.5"><span class="text-xs px-2 py-0.5 rounded-full font-medium ${u.status==='Aktif'?'bg-green-50 text-green-600':'bg-gray-100 text-gray-500'}">${u.status}</span></td><td class="px-3 py-2.5"><div class="flex gap-1"><button onclick="showFormUser(${i})" class="p-2 rounded-lg hover:bg-blue-100 bg-blue-50 text-blue-600 hover:text-blue-700 transition font-medium flex items-center gap-1.5" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i><span class="text-xs hidden sm:inline">Edit</span></button><button onclick="confirmDeleteUser(${i})" class="admin-only p-2 rounded-lg hover:bg-red-100 text-red-500 hover:text-red-600 transition flex items-center gap-1.5" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i><span class="text-xs hidden sm:inline">Hapus</span></button></div></td></tr>`).join('')}</tbody></table></div>
-</div>`;
-lucide.createIcons();
-}
-
-function showFormUser(idx){
-const isEdit=idx!==undefined;
-const user=isEdit?usersData[idx]:{username:'',nama:'',role:'Admin Desa',status:'Aktif'};
-openModal(`
-<div class="p-6 max-h-[85vh] overflow-y-auto">
-<h2 class="text-lg font-bold text-gray-800 mb-4">${isEdit?'Edit':'Tambah'} User</h2>
-<form id="form-user" class="space-y-4">
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Username</label><input name="username" value="${user.username||''}" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${user.nama||''}" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Role</label><select name="role" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Admin Desa" ${user.role==='Admin Desa'?'selected':''}>Admin Desa</option><option value="Ketua RT 01" ${user.role==='Ketua RT 01'?'selected':''}>Ketua RT 01</option><option value="Ketua RT 02" ${user.role==='Ketua RT 02'?'selected':''}>Ketua RT 02</option><option value="Ketua RT 03" ${user.role==='Ketua RT 03'?'selected':''}>Ketua RT 03</option><option value="Ketua RT 04" ${user.role==='Ketua RT 04'?'selected':''}>Ketua RT 04</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Aktif" ${user.status==='Aktif'?'selected':''}>Aktif</option><option value="Non-aktif" ${user.status==='Non-aktif'?'selected':''}>Non-aktif</option></select></div>
-</div>
-<div class="flex gap-2 pt-3">
-<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
-<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
-</div>
-</form>
-</div>`);
-lucide.createIcons();
-document.getElementById('form-user').addEventListener('submit',function(e){
-e.preventDefault();
-const payload=Object.fromEntries(new FormData(this));
-if(isEdit){
-Object.assign(usersData[idx],payload);
-showToast('User berhasil diperbarui','success');
-}else{
-usersData.push(payload);
-showToast('User berhasil ditambahkan','success');
-}
-closeModal();
-navigate('users');
-});
-}
-
-function confirmDeleteUser(idx){
- if(currentRole !== 'admin'){
- showToast('Akses hanya untuk admin','error');
- return;
- }
- const user = usersData[idx] || {};
- openModal(`
- <div class="p-6 text-center">
- <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center"><i data-lucide="alert-triangle" class="w-7 h-7 text-red-500"></i></div>
- <h3 class="text-lg font-bold text-gray-800 mb-2">Hapus User?</h3>
- <p class="text-sm text-gray-500 mb-2">Username: <span class="font-mono font-semibold">${user.username||'-'}</span></p>
- <p class="text-sm text-gray-500 mb-5">Nama: <span class="font-semibold">${user.nama||'-'}</span></p>
- <div class="flex gap-2">
- <button onclick="doDeleteUser(${idx})" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-semibold transition">Ya, Hapus</button>
- <button onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium transition">Batal</button>
- </div>
- </div>`);
- lucide.createIcons();
-}
-
-function doDeleteUser(idx){
- if(currentRole !== 'admin'){
- showToast('Akses hanya untuk admin','error');
- closeModal();
- return;
- }
- if(typeof idx === 'number' && idx >= 0 && idx < usersData.length){
- usersData.splice(idx,1);
- }
- closeModal();
- showToast('User berhasil dihapus','success');
- syncData();
- navigate('users');
-}
-
-function showFormKK(){
-openModal(`
-<div class="p-6 max-h-[85vh] overflow-y-auto">
-<h2 class="text-lg font-bold text-gray-800 mb-4">Tambah Kartu Keluarga</h2>
-<form id="form-kk" class="space-y-4">
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-<div><label class="block text-xs font-medium text-gray-600 mb-1">No. KK</label><input name="noKK" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Nama Kepala Keluarga</label><input name="kepala" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK Kepala</label><input name="nik" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Alamat</label><input name="alamat" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none">${rtOptionsHTML}</select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input name="rw" value="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Jenis Kelamin</label><select name="jk" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Belum Kawin">Belum Kawin</option><option value="Kawin">Kawin</option><option value="Cerai">Cerai</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Agama</label><input name="agama" value="Islam" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="date" name="tgl_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-</div>
-<div class="flex gap-2 pt-3">
-<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
-<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
-</div>
-</form>
-</div>`);
-lucide.createIcons();
-document.getElementById('form-kk').addEventListener('submit',function(e){
-e.preventDefault();
-const obj=Object.fromEntries(new FormData(this));
-obj.rt=normalizeRT(obj.rt||'01');
-pendudukData.push({
-nik:obj.nik,
-nama:obj.kepala,
-tempat_lahir:obj.tempat_lahir||'',
-tgl_lahir:obj.tgl_lahir||'',
-bln_lahir:obj.bln_lahir||'01',
-thn_lahir:obj.thn_lahir||'2000',
-alamat:obj.alamat||'',
-rt:obj.rt,
-rw:obj.rw||'01',
-jk:obj.jk||'L',
-status:obj.status||'Belum Kawin',
-agama:obj.agama||'Islam',
-pekerjaan:'',
-noKK:obj.noKK,
-isKepalaKeluarga:true,
-familyMembers:[]
-});
-closeModal();
-showToast('Kartu Keluarga berhasil dibuat','success');
-navigate('kk');
-updateDashboardStats();
-});
-}
-
-// FORMS
-function showFormPenduduk(nik){
-const idx=nik?pendudukData.findIndex(p=>p.nik===nik):-1;
-const isEdit=idx!==-1;
-const r=isEdit?pendudukData[idx]:{};
-const familyMembers=r.familyMembers||[];
-openModal(`
-<div class="p-6 max-h-[85vh] overflow-y-auto">
-<h2 class="text-lg font-bold text-gray-800 mb-4">${isEdit?'Edit':'Tambah'} Data Penduduk</h2>
-<form id="form-penduduk" class="space-y-4">
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="16 digit NIK"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Nama Lengkap</label><input name="nama" value="${r.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="date" name="tgl_lahir" value="${r.tgl_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Usia</label><input type="number" name="usia" value="${r.usia||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div class="sm:col-span-2 flex items-center gap-2"><label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="checkbox" name="lansia" ${r.lansia?'checked':''} class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"><span>Lansia</span></label></div>
-<div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Alamat</label><input name="alamat" value="${r.alamat||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option ${r.rt==='01'?'selected':''}>01</option><option ${r.rt==='02'?'selected':''}>02</option><option ${r.rt==='03'?'selected':''}>03</option><option ${r.rt==='04'?'selected':''}>04</option><option ${r.rt==='05'?'selected':''}>05</option><option ${r.rt==='06'?'selected':''}>06</option><option ${r.rt==='07'?'selected':''}>07</option><option ${r.rt==='08'?'selected':''}>08</option><option ${r.rt==='09'?'selected':''}>09</option><option ${r.rt==='10'?'selected':''}>10</option><option ${r.rt==='11'?'selected':''}>11</option><option ${r.rt==='12'?'selected':''}>12</option><option ${r.rt==='13'?'selected':''}>13</option><option ${r.rt==='14'?'selected':''}>14</option><option ${r.rt==='15'?'selected':''}>15</option><option ${r.rt==='16'?'selected':''}>16</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input name="rw" value="${r.rw||'01'}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="01"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Jenis Kelamin</label><select name="jk" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="L" ${r.jk==='L'?'selected':''}>Laki-laki</option><option value="P" ${r.jk==='P'?'selected':''}>Perempuan</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option ${r.status==='Belum Kawin'?'selected':''}>Belum Kawin</option><option ${r.status==='Kawin'?'selected':''}>Kawin</option><option ${r.status==='Cerai'?'selected':''}>Cerai</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Status Hamil</label><select name="hamil" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Tidak" ${r.hamil==='Tidak'?'selected':''}>Tidak</option><option value="Ya" ${r.hamil==='Ya'?'selected':''}>Ya</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Foto Dokumen</label><input id="dokumen-file" type="file" accept="image/*" onchange="handleDocumentFile(event)" class="w-full text-xs text-gray-600 file:border-0 file:bg-primary-50 file:text-primary-700 file:px-3 file:py-2 file:rounded-lg"><p id="dokumen-status" class="text-[10px] text-gray-500 mt-1">Pilih foto KTP atau dokumen untuk otomatis mengisi data.</p></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Penyakit yang Dialami</label><input name="penyakit" value="${r.penyakit||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none" placeholder="Contoh: Diabetes, Asma"></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Stunting</label><select name="stunting" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Tidak" ${r.stunting==='Tidak'?'selected':''}>Tidak</option><option value="Ya" ${r.stunting==='Ya'?'selected':''}>Ya</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Anak Bekerja</label><select name="anak_bekerja" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Tidak" ${r.anak_bekerja==='Tidak'?'selected':''}>Tidak</option><option value="Ya" ${r.anak_bekerja==='Ya'?'selected':''}>Ya</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Status Sekolah</label><select name="sekolah" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"><option value="Tidak Sekolah" ${r.sekolah==='Tidak Sekolah'?'selected':''}>Tidak Sekolah</option><option value="Sedang Sekolah" ${r.sekolah==='Sedang Sekolah'?'selected':''}>Sedang Sekolah</option><option value="Putus Sekolah" ${r.sekolah==='Putus Sekolah'?'selected':''}>Putus Sekolah</option><option value="Lainnya" ${r.sekolah==='Lainnya'?'selected':''}>Lainnya</option></select></div>
-<div><label class="block text-xs font-medium text-gray-600 mb-1">Agama</label><input name="agama" value="${r.agama||'Islam'}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Pekerjaan</label><input name="pekerjaan" value="${r.pekerjaan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Nomor Kartu Keluarga</label><input name="noKK" value="${r.noKK||''}" placeholder="16 digit No. KK" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"></div>
-<div class="sm:col-span-2"><label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="checkbox" name="isKepalaKeluarga" ${r.isKepalaKeluarga?'checked':''} class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"><span>Sebagai Kepala Keluarga</span></label></div>
-</div>
-<div class="border-t pt-4">
-<div class="flex items-center justify-between mb-3">
-<label class="text-sm font-semibold text-gray-700">Anggota Keluarga Lainnya</label>
-<button type="button" onclick="addFamilyMember()" class="text-xs bg-primary-50 text-primary-700 hover:bg-primary-100 px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 transition"><i data-lucide="plus" class="w-3 h-3"></i>Tambah</button>
-</div>
-<div id="family-members" class="space-y-2">
-${familyMembers.map((fm,i)=>`
-<div class="family-member p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
-<div class="grid grid-cols-2 gap-2">
-<input type="text" data-field="nama" value="${fm.nama||''}" placeholder="Nama anggota" onchange="updateFamilyMember(${i},'nama',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-<input type="text" data-field="nik" value="${fm.nik||''}" placeholder="NIK" onchange="updateFamilyMember(${i},'nik',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-</div>
-<div class="grid grid-cols-2 gap-2">
-<input type="text" data-field="tempat_lahir" value="${fm.tempat_lahir||''}" placeholder="Tempat Lahir" onchange="updateFamilyMember(${i},'tempat_lahir',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-<input type="date" data-field="tgl_lahir" value="${fm.tgl_lahir||''}" onchange="updateFamilyMember(${i},'tgl_lahir',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-</div>
-<div class="grid grid-cols-3 gap-2">
-<select data-field="jk" onchange="updateFamilyMember(${i},'jk',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-<option ${fm.jk==='L'?'selected':''} value="L">Laki-laki</option>
-<option ${fm.jk==='P'?'selected':''} value="P">Perempuan</option>
-</select>
-<select data-field="status" onchange="updateFamilyMember(${i},'status',this.value)" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-<option ${fm.status==='Belum Kawin'?'selected':''}>Belum Kawin</option>
-<option ${fm.status==='Kawin'?'selected':''}>Kawin</option>
-<option ${fm.status==='Cerai'?'selected':''}>Cerai</option>
-</select>
-<button type="button" onclick="removeFamilyMember(${i})" class="text-xs bg-red-50 text-red-600 hover:bg-red-100 rounded font-medium transition"><i data-lucide="trash-2" class="w-3 h-3 mx-auto"></i></button>
-</div>
-</div>
-`).join('')}
-</div>
-</div>
-<div class="flex gap-2 pt-3">
-<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
-<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
-</div>
-</form>
-</div>`);
-lucide.createIcons();
-document.getElementById('form-penduduk').addEventListener('submit',function(e){
-e.preventDefault();
-const fd=new FormData(this);
-const obj=Object.fromEntries(fd);
-obj.rt=normalizeRT(obj.rt||'');
-obj.isKepalaKeluarga=this.querySelector('input[name="isKepalaKeluarga"]').checked||false;
-obj.lansia=this.querySelector('input[name="lansia"]').checked||false;
-obj.usia=Number(obj.usia)||0;
-obj.hamil=obj.hamil||'Tidak';
-obj.penyakit=obj.penyakit||'';
-obj.stunting=obj.stunting||'Tidak';
-obj.anak_bekerja=obj.anak_bekerja||'Tidak';
-obj.sekolah=obj.sekolah||'Tidak Sekolah';
-if(obj.dokumen) delete obj.dokumen;
-const familyNodes=Array.from(document.querySelectorAll('#family-members .family-member'));
-obj.familyMembers=familyNodes.map(el=>({
-nama:el.querySelector('[data-field="nama"]').value||'',
-nik:el.querySelector('[data-field="nik"]').value||'',
-tempat_lahir:el.querySelector('[data-field="tempat_lahir"]').value||'',
-tgl_lahir:el.querySelector('[data-field="tgl_lahir"]').value||'',
-jk:el.querySelector('[data-field="jk"]').value||'L',
-status:el.querySelector('[data-field="status"]').value||'Belum Kawin'
-}));
-if(isEdit){Object.assign(pendudukData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Data penduduk diperbarui', 'user-check', 'primary');}
-else{pendudukData.push(obj);showToast('Data berhasil ditambahkan','success');addActivity('Data penduduk baru ditambahkan', 'user-plus', 'primary');}
-closeModal();
-refreshCurrentView();
-});
-}
-
-async function handleDocumentFile(event){
-const file=event.target.files[0];
-const status=document.getElementById('dokumen-status');
-if(!file){
-status.textContent='Tidak ada file dipilih';
-return;
-}
-status.textContent='Memindai dokumen... Harap tunggu.';
-try{
-const {data:{text}}=await Tesseract.recognize(file,'ind',{logger:()=>{}});
-status.textContent='Dokumen dipindai, mengisi data...';
-parseDocumentText(text);
-status.textContent='Data berhasil diisi dari dokumen. Mohon cek kembali.';
-}catch(err){
-console.error(err);
-status.textContent='Gagal membaca dokumen. Coba foto lain atau ketik manual.';
-}
-}
-
-function parseDocumentText(text){
-const normalized=text.replace(/\r/g,'\n');
-const nikMatch=normalized.match(/(\d{16})/);
-if(nikMatch) document.querySelector('input[name="nik"]').value=nikMatch[1];
-const namaMatch=normalized.match(/nama(?: lengkap)?[:\s]*([A-Za-z\u00C0-\u017F\.\- ]{3,})/i);
-if(namaMatch) document.querySelector('input[name="nama"]').value=namaMatch[1].trim();
-const tempatMatch=normalized.match(/tempat lahir[:\s]*([A-Za-z\u00C0-\u017F\.\- ]+)/i);
-if(tempatMatch) document.querySelector('input[name="tempat_lahir"]').value=tempatMatch[1].trim();
-const ttlMatch=normalized.match(/tanggal lahir[:\s]*([0-9]{2}[-\/]?[0-9]{2}[-\/]?[0-9]{4})/i);
-if(ttlMatch){
-const date=ttlMatch[1].replace(/\//g,'-');
-const parts=date.split('-');
-if(parts.length===3){
-const formatted=`${parts[2].padStart(4,'0')}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
-document.querySelector('input[name="tgl_lahir"]').value=formatted;
-}
-}
-const jkMatch=normalized.match(/\b(laki[- ]?laki|perempuan|pria|wanita)\b/i);
-if(jkMatch){
-const jk=jkMatch[1].toLowerCase().includes('laki')?'L':'P';
-document.querySelector('select[name="jk"]').value=jk;
-}
-const statusMatch=normalized.match(/status[:\s]*(belum kawin|kawin|cerai)/i);
-if(statusMatch) document.querySelector('select[name="status"]').value=statusMatch[1].replace(/\s+/g,' ').trim();
-const rtMatch=normalized.match(/rt[:\s]*([0-9]{1,2})/i);
-if(rtMatch) document.querySelector('select[name="rt"]').value=rtMatch[1].padStart(2,'0');
-const rwMatch=normalized.match(/rw[:\s]*([0-9]{1,2})/i);
-if(rwMatch) document.querySelector('input[name="rw"]').value=rwMatch[1].padStart(2,'0');
-const noKKMatch=normalized.match(/(\d{16})/g);
-if(noKKMatch){
-const noKK=noKKMatch.find(n=>n!==document.querySelector('input[name="nik"]').value);
-if(noKK) document.querySelector('input[name="noKK"]').value=noKK;
-}
-const hamilMatch=normalized.match(/hamil[:\s]*(ya|tidak)/i);
-if(hamilMatch) document.querySelector('select[name="hamil"]').value=hamilMatch[1].toLowerCase()==='ya'?'Ya':'Tidak';
-const penyakitMatch=normalized.match(/penyakit[:\s]*([A-Za-z\u00C0-\u017F0-9\.\- ]+)/i);
-if(penyakitMatch) document.querySelector('input[name="penyakit"]').value=penyakitMatch[1].trim();
-const stuntingMatch=normalized.match(/stunting[:\s]*(ya|tidak)/i);
-if(stuntingMatch) document.querySelector('select[name="stunting"]').value=stuntingMatch[1].toLowerCase()==='ya'?'Ya':'Tidak';
-const anakKerjaMatch=normalized.match(/anak bekerja[:\s]*(ya|tidak)/i);
-if(anakKerjaMatch) document.querySelector('select[name="anak_bekerja"]').value=anakKerjaMatch[1].toLowerCase()==='ya'?'Ya':'Tidak';
-const sekolahMatch=normalized.match(/(sedang sekolah|tidak sekolah|putus sekolah|sekolah[:\s]*[A-Za-z ]+)/i);
-if(sekolahMatch) {
-const schoolValue=sekolahMatch[0].toLowerCase();
-if(schoolValue.includes('sedang')) document.querySelector('select[name="sekolah"]').value='Sedang Sekolah';
-else if(schoolValue.includes('tidak')) document.querySelector('select[name="sekolah"]').value='Tidak Sekolah';
-else if(schoolValue.includes('putus')) document.querySelector('select[name="sekolah"]').value='Putus Sekolah';
-else document.querySelector('select[name="sekolah"]').value='Lainnya';
-}
-}
-
-function addFamilyMember(){
-const container=document.getElementById('family-members');
-const div=document.createElement('div');
-div.className='family-member p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2';
-div.innerHTML=`
-<div class="grid grid-cols-2 gap-2">
-<input type="text" data-field="nama" placeholder="Nama anggota" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-<input type="text" data-field="nik" placeholder="NIK" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-</div>
-<div class="grid grid-cols-2 gap-2">
-<input type="text" data-field="tempat_lahir" placeholder="Tempat Lahir" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-<input type="date" data-field="tgl_lahir" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-</div>
-<div class="grid grid-cols-3 gap-2">
-<select data-field="jk" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-<option value="L">Laki-laki</option>
-<option value="P">Perempuan</option>
-</select>
-<select data-field="status" class="text-xs px-2 py-1.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-primary-500">
-<option>Belum Kawin</option>
-<option>Kawin</option>
-<option>Cerai</option>
-</select>
-<button type="button" onclick="this.closest('.family-member').remove()" class="text-xs bg-red-50 text-red-600 hover:bg-red-100 rounded font-medium transition"><i data-lucide="trash-2" class="w-3 h-3 mx-auto"></i></button>
-</div>
-`;
-container.appendChild(div);
-lucide.createIcons();
-}
-
-function updateFamilyMember(i,field,val){
-if(!window.currentFamilyMembers)window.currentFamilyMembers=[];
-window.currentFamilyMembers[i]=window.currentFamilyMembers[i]||{};
-window.currentFamilyMembers[i][field]=val;
-}
-
-function removeFamilyMember(i){
-document.getElementById('family-members').children[i].remove();
-}
-
-function showFormGeneric(type,idx){
-const isEdit=idx!==undefined;
-const labels={pendatang:'Pendatang',pindah:'Pindah',meninggal:'Meninggal'};
-const r=isEdit?(type==='pendatang'?pendatangData[idx]:type==='pindah'?pindahData[idx]:meninggalData[idx]):null;
-const fields={
-pendatang:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Asal</label><input name="asal" value="${r?.asal||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Datang</label><input type="date" name="tglDatang" value="${r?.tglDatang||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT Tujuan</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none">${renderRtOptions(r?.rt)}</select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Nomor Kartu Keluarga</label><input type="text" name="noKK" value="${r?.noKK||''}" placeholder="16 digit No. KK" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Tujuan/Alasan</label><input name="tujuan" value="${r?.tujuan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>,
-pindah:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tujuan Pindah</label><input name="tujuan" value="${r?.tujuan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Pindah</label><input type="date" name="tglPindah" value="${r?.tglPindah||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT Asal</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none">${renderRtOptions(r?.rt)}</select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Alasan</label><input name="alasan" value="${r?.alasan||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>,
-meninggal:`<div><label class="block text-xs font-medium text-gray-600 mb-1">NIK</label><input name="nik" value="${r?.nik||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Nama</label><input name="nama" value="${r?.nama||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tempat Lahir</label><input name="tempat_lahir" value="${r?.tempat_lahir||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Lahir</label><input type="number" name="tgl_lahir" min="1" max="31" value="${r?.tgl_lahir||''}" placeholder="01-31" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Bulan Lahir</label><select name="bln_lahir" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none"><option value="">-- Pilih --</option><option value="01" ${r?.bln_lahir==='01'?'selected':''}>Januari</option><option value="02" ${r?.bln_lahir==='02'?'selected':''}>Februari</option><option value="03" ${r?.bln_lahir==='03'?'selected':''}>Maret</option><option value="04" ${r?.bln_lahir==='04'?'selected':''}>April</option><option value="05" ${r?.bln_lahir==='05'?'selected':''}>Mei</option><option value="06" ${r?.bln_lahir==='06'?'selected':''}>Juni</option><option value="07" ${r?.bln_lahir==='07'?'selected':''}>Juli</option><option value="08" ${r?.bln_lahir==='08'?'selected':''}>Agustus</option><option value="09" ${r?.bln_lahir==='09'?'selected':''}>September</option><option value="10" ${r?.bln_lahir==='10'?'selected':''}>Oktober</option><option value="11" ${r?.bln_lahir==='11'?'selected':''}>November</option><option value="12" ${r?.bln_lahir==='12'?'selected':''}>Desember</option></select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tahun Lahir</label><input type="number" name="thn_lahir" min="1900" max="2025" value="${r?.thn_lahir||''}" placeholder="1985" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Meninggal</label><input type="date" name="tglMeninggal" value="${r?.tglMeninggal||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">Usia</label><input type="number" name="usia" value="${r?.usia||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RT</label><select name="rt" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none">${renderRtOptions(r?.rt)}</select></div><div><label class="block text-xs font-medium text-gray-600 mb-1">RW</label><input type="text" name="rw" value="${r?.rw||''}" placeholder="01" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div><div class="sm:col-span-2"><label class="block text-xs font-medium text-gray-600 mb-1">Sebab Meninggal</label><input name="sebab" value="${r?.sebab||''}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"></div>
-};
-openModal(`
-<div class="p-6">
-<h2 class="text-lg font-bold text-gray-800 mb-4">${isEdit?'Edit':'Tambah'} Data ${labels[type]}</h2>
-<form id="form-${type}" class="space-y-3">
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${fields[type]}</div>
-<div class="flex gap-2 pt-3">
-<button type="submit" class="btn-primary text-white px-5 py-2 rounded-lg text-sm font-semibold flex-1">Simpan</button>
-<button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium flex-1 transition">Batal</button>
-</div>
-</form>
-</div>`);
-lucide.createIcons();
-document.getElementById('form-'+type).addEventListener('submit',function(e){
-e.preventDefault();
-const fd=new FormData(this);
-const obj=Object.fromEntries(fd);
-obj.rt=normalizeRT(obj.rt||'');
-if(type==='pendatang'){
-if(isEdit){Object.assign(pendatangData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Pendatang diperbarui', 'user-plus', 'blue');}
-else{pendatangData.push(obj);showToast('Data ditambahkan','success');addActivity('Pendatang baru ditambahkan', 'user-plus', 'blue');}
-}else if(type==='pindah'){
-if(isEdit){Object.assign(pindahData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Data pindah diperbarui', 'truck', 'amber');}
-else{pindahData.push(obj);showToast('Data ditambahkan','success');addActivity('Data pindah baru ditambahkan', 'truck', 'amber');}
-}else if(type==='meninggal'){
-if(isEdit){Object.assign(meninggalData[idx],obj);showToast('Data berhasil diperbarui','success');addActivity('Data meninggal diperbarui', 'heart', 'red');}
-else{meninggalData.push(obj);showToast('Data ditambahkan','success');addActivity('Data meninggal baru ditambahkan', 'heart', 'red');}
-}
-syncData();
-closeModal();
-refreshCurrentView();
-});
-}
-
-// DELETE CONFIRMATION
-function confirmDelete(type,idx){
-openModal(`
-<div class="p-6 text-center">
-<div class="w-14 h-14 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center"><i data-lucide="alert-triangle" class="w-7 h-7 text-red-500"></i></div>
-<h3 class="text-lg font-bold text-gray-800 mb-2">Hapus Data?</h3>
-<p class="text-sm text-gray-500 mb-5">Data yang dihapus tidak dapat dikembalikan.</p>
-<div class="flex gap-2">
-<button onclick="doDelete('${type}',${idx})" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-semibold transition">Ya, Hapus</button>
-<button onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium transition">Batal</button>
-</div>
-</div>`);
-lucide.createIcons();
-}
-
-function doDelete(type,idx){
-let activityMessage='Data dihapus';
-let activityIcon='trash-2';
-let activityColor='primary';
-if(type==='penduduk'){
-const deleteIndex=typeof idx==='string'?pendudukData.findIndex(p=>p.nik===idx):idx;
-if(deleteIndex!==-1) pendudukData.splice(deleteIndex,1);
-activityMessage='Penduduk dihapus';
-activityIcon='users';
-activityColor='primary';
-}else if(type==='pendatang'){
-pendatangData.splice(idx,1);
-activityMessage='Pendatang dihapus';
-activityIcon='user-plus';
-activityColor='blue';
-}else if(type==='pindah'){
-pindahData.splice(idx,1);
-activityMessage='Data pindah dihapus';
-activityIcon='truck';
-activityColor='amber';
-}else if(type==='meninggal'){
-meninggalData.splice(idx,1);
-activityMessage='Data meninggal dihapus';
-activityIcon='heart';
-activityColor='red';
-}else if(type==='users'){
-usersData.splice(idx,1);
-activityMessage='User dihapus';
-activityIcon='shield-alert';
-activityColor='primary';
-}
-syncData();
-closeModal();
-addActivity(activityMessage, activityIcon, activityColor);
-showToast('Data berhasil dihapus','success');
-refreshCurrentView();
-}
-
-// MODAL
-function openModal(html){
-const m=document.getElementById('modal');
-document.getElementById('modal-content').innerHTML=html;
-m.style.display='flex';lucide.createIcons();
-}
-function closeModal(){document.getElementById('modal').style.display='none';}
-document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-
-// TOAST
-function showToast(msg,type){
-const c=document.getElementById('toast-container');
-const t=document.createElement('div');
-const colors={success:'bg-primary-600',error:'bg-red-500',info:'bg-accent-500'};
-t.className=`toast ${colors[type]||colors.info} text-white px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2`;
-t.innerHTML=`<i data-lucide="${type==='success'?'check-circle':type==='error'?'x-circle':'info'}" class="w-4 h-4"></i>${msg}`;
-c.appendChild(t);lucide.createIcons();
-setTimeout(()=>t.remove(),3000);
-}
-
-setInterval(()=>{if(currentView==='dashboard') renderRecentActivity();},15000);
-
-// ELEMENT SDK
-const defaultConfig={
-village_name:'Desa Kertasari',
-district_name:'Kecamatan Pangkalan',
-regency_name:'Kabupaten Karawang',
-background_color:'#f8fafc',
-surface_color:'#ffffff',
-text_color:'#1e293b',
-primary_color:'#059669',
-accent_color:'#3b82f6',
-font_family:'Plus Jakarta Sans',
-font_size:14
+// ===== STATE =====
+let savedData = [];
+let cameraStream = null;
+let anggotaCount = 0;
+let cropStart = { x: 0, y: 0 };
+let cropEnd = { x: 100, y: 100 };
+
+// ===== LOCALSTORAGE HELPERS =====
+function loadData() {
+  const stored = localStorage.getItem('kkScannerData');
+  savedData = stored ? JSON.parse(stored) : [];
+  renderTable();
+}
+
+function saveData() {
+  localStorage.setItem('kkScannerData', JSON.stringify(savedData));
+}
+
+// ===== DEFAULT CONFIG =====
+const defaultConfig = {
+  app_title: 'Scanner Kartu Keluarga',
+  background_color: '#020617',
+  surface_color: '#0f172a',
+  text_color: '#f1f5f9',
+  primary_color: '#0ea5e9',
+  secondary_color: '#10b981'
 };
 
-function applyConfig(config){
-const bg=config.background_color||defaultConfig.background_color;
-const surface=config.surface_color||defaultConfig.surface_color;
-const text=config.text_color||defaultConfig.text_color;
-const primary=config.primary_color||defaultConfig.primary_color;
-const accent=config.accent_color||defaultConfig.accent_color;
-const font=config.font_family||defaultConfig.font_family;
-const size=config.font_size||defaultConfig.font_size;
-const village=config.village_name||defaultConfig.village_name;
-const district=config.district_name||defaultConfig.district_name;
-const regency=config.regency_name||defaultConfig.regency_name;
-
-document.querySelector('main').style.background=bg;
-document.querySelectorAll('.card-stat,.bg-white').forEach(el=>el.style.backgroundColor=surface);
-document.body.style.color=text;
-document.body.style.fontFamily=font+', sans-serif';
-document.body.style.fontSize=size+'px';
-
-const loginVillage=document.getElementById('login-village');
-if(loginVillage) loginVillage.textContent=`${village}, ${district}, ${regency}`;
-const sidebarVillage=document.getElementById('sidebar-village');
-if(sidebarVillage) sidebarVillage.textContent=village;
-}
-
-if(window.elementSdk){
+// ===== ELEMENT SDK =====
 window.elementSdk.init({
-defaultConfig,
-onConfigChange:async(config)=>applyConfig(config),
-mapToCapabilities:(config)=>({
-recolorables:[
-{get:()=>config.background_color||defaultConfig.background_color,set:v=>{config.background_color=v;window.elementSdk.setConfig({background_color:v})}},
-{get:()=>config.surface_color||defaultConfig.surface_color,set:v=>{config.surface_color=v;window.elementSdk.setConfig({surface_color:v})}},
-{get:()=>config.text_color||defaultConfig.text_color,set:v=>{config.text_color=v;window.elementSdk.setConfig({text_color:v})}},
-{get:()=>config.primary_color||defaultConfig.primary_color,set:v=>{config.primary_color=v;window.elementSdk.setConfig({primary_color:v})}},
-{get:()=>config.accent_color||defaultConfig.accent_color,set:v=>{config.accent_color=v;window.elementSdk.setConfig({accent_color:v})}},
-],
-borderables:[],
-fontEditable:{get:()=>config.font_family||defaultConfig.font_family,set:v=>{config.font_family=v;window.elementSdk.setConfig({font_family:v})}},
-fontSizeable:{get:()=>config.font_size||defaultConfig.font_size,set:v=>{config.font_size=v;window.elementSdk.setConfig({font_size:v})}}
-}),
-mapToEditPanelValues:(config)=>new Map([
-['village_name',config.village_name||defaultConfig.village_name],
-['district_name',config.district_name||defaultConfig.district_name],
-['regency_name',config.regency_name||defaultConfig.regency_name],
-])
+  defaultConfig,
+  onConfigChange: async (config) => {
+    const t = config.app_title || defaultConfig.app_title;
+    document.getElementById('el-title').textContent = t;
+
+    const bg = config.background_color || defaultConfig.background_color;
+    const sf = config.surface_color || defaultConfig.surface_color;
+    const tx = config.text_color || defaultConfig.text_color;
+    const pr = config.primary_color || defaultConfig.primary_color;
+    const sc = config.secondary_color || defaultConfig.secondary_color;
+
+    document.body.style.backgroundColor = bg;
+    document.body.style.color = tx;
+
+    document.querySelectorAll('section, #ocr-loading').forEach(el => {
+      el.style.backgroundColor = sf;
+      el.style.borderColor = bg;
+    });
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: v => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+      { get: () => config.surface_color || defaultConfig.surface_color, set: v => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+      { get: () => config.text_color || defaultConfig.text_color, set: v => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+      { get: () => config.primary_color || defaultConfig.primary_color, set: v => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); } },
+      { get: () => config.secondary_color || defaultConfig.secondary_color, set: v => { config.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); } },
+    ],
+    borderables: [],
+    fontEditable: undefined,
+    fontSizeable: undefined
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ['app_title', config.app_title || defaultConfig.app_title]
+  ])
 });
+
+// ===== TOAST =====
+function showToast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  const colors = { success: 'bg-emerald-500', error: 'bg-red-500', info: 'bg-sky-500' };
+  const d = document.createElement('div');
+  d.className = `toast ${colors[type] || colors.info} text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-lg`;
+  d.textContent = msg;
+  c.appendChild(d);
+  setTimeout(() => d.remove(), 3000);
 }
 
-// INIT
+// ===== CAMERA =====
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } } });
+    const video = document.getElementById('video');
+    video.srcObject = cameraStream;
+    document.getElementById('camera-wrap').classList.remove('hidden');
+    document.getElementById('btn-capture').classList.remove('hidden');
+    document.getElementById('btn-start-cam').classList.add('hidden');
+  } catch (e) {
+    showToast('Gagal mengakses kamera: ' + e.message, 'error');
+  }
+}
+
+function capturePhoto() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('captureCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+
+  // Stop camera
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  document.getElementById('camera-wrap').classList.add('hidden');
+  document.getElementById('capture-wrap').classList.remove('hidden');
+  document.getElementById('btn-capture').classList.add('hidden');
+  document.getElementById('btn-crop').classList.remove('hidden');
+  document.getElementById('btn-ocr-full').classList.remove('hidden');
+  document.getElementById('btn-retake').classList.remove('hidden');
+
+  // Init crop region
+  initCrop();
+}
+
+function retakePhoto() {
+  document.getElementById('capture-wrap').classList.add('hidden');
+  document.getElementById('btn-crop').classList.add('hidden');
+  document.getElementById('btn-ocr-full').classList.add('hidden');
+  document.getElementById('btn-retake').classList.add('hidden');
+  document.getElementById('btn-start-cam').classList.remove('hidden');
+  hideCropHandles();
+}
+
+// ===== CROP =====
+function initCrop() {
+  const wrap = document.getElementById('capture-wrap');
+  const region = document.getElementById('crop-region');
+  const tl = document.getElementById('crop-tl');
+  const br = document.getElementById('crop-br');
+
+  region.classList.remove('hidden');
+  tl.classList.remove('hidden');
+  br.classList.remove('hidden');
+
+  // Default crop: 10%-90%
+  cropStart = { x: 10, y: 10 };
+  cropEnd = { x: 90, y: 90 };
+  updateCropUI();
+
+  // Draggable handles
+  makeDraggable(tl, 'start');
+  makeDraggable(br, 'end');
+}
+
+function updateCropUI() {
+  const region = document.getElementById('crop-region');
+  const tl = document.getElementById('crop-tl');
+  const br = document.getElementById('crop-br');
+  region.style.left = cropStart.x + '%'; region.style.top = cropStart.y + '%';
+  region.style.width = (cropEnd.x - cropStart.x) + '%'; region.style.height = (cropEnd.y - cropStart.y) + '%';
+  tl.style.left = cropStart.x + '%'; tl.style.top = cropStart.y + '%'; tl.style.transform = 'translate(-50%,-50%)';
+  br.style.left = cropEnd.x + '%'; br.style.top = cropEnd.y + '%'; br.style.transform = 'translate(-50%,-50%)';
+}
+
+function makeDraggable(el, which) {
+  const onMove = (cx, cy) => {
+    const wrap = document.getElementById('capture-wrap');
+    const rect = wrap.getBoundingClientRect();
+    let px = ((cx - rect.left) / rect.width) * 100;
+    let py = ((cy - rect.top) / rect.height) * 100;
+    px = Math.max(0, Math.min(100, px));
+    py = Math.max(0, Math.min(100, py));
+    if (which === 'start') { cropStart = { x: Math.min(px, cropEnd.x - 5), y: Math.min(py, cropEnd.y - 5) }; }
+    else { cropEnd = { x: Math.max(px, cropStart.x + 5), y: Math.max(py, cropStart.y + 5) }; }
+    updateCropUI();
+  };
+  el.onmousedown = e => { e.preventDefault(); const mv = e2 => onMove(e2.clientX, e2.clientY); const up = () => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }; document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); };
+  el.ontouchstart = e => { e.preventDefault(); const mv = e2 => { const t = e2.touches[0]; onMove(t.clientX, t.clientY); }; const up = () => { document.removeEventListener('touchmove', mv); document.removeEventListener('touchend', up); }; document.addEventListener('touchmove', mv); document.addEventListener('touchend', up); };
+}
+
+function hideCropHandles() {
+  document.getElementById('crop-region').classList.add('hidden');
+  document.getElementById('crop-tl').classList.add('hidden');
+  document.getElementById('crop-br').classList.add('hidden');
+}
+
+function applyCrop() { runOCR(true); }
+
+// ===== OCR =====
+async function runOCR(useCrop) {
+  const canvas = document.getElementById('captureCanvas');
+  let imageData;
+
+  if (useCrop) {
+    // Create cropped canvas
+    const cw = canvas.width, ch = canvas.height;
+    const sx = (cropStart.x / 100) * cw, sy = (cropStart.y / 100) * ch;
+    const sw = ((cropEnd.x - cropStart.x) / 100) * cw, sh = ((cropEnd.y - cropStart.y) / 100) * ch;
+    const tmpC = document.createElement('canvas');
+    tmpC.width = sw; tmpC.height = sh;
+    tmpC.getContext('2d').drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
+    imageData = tmpC.toDataURL('image/png');
+  } else {
+    imageData = canvas.toDataURL('image/png');
+  }
+
+  document.getElementById('ocr-loading').classList.remove('hidden');
+
+  try {
+    const result = await Tesseract.recognize(imageData, 'ind+eng', {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          document.getElementById('ocr-progress').textContent = Math.round((m.progress || 0) * 100) + '%';
+        }
+      }
+    });
+    const text = result.data.text;
+    parseOCRText(text);
+    showToast('OCR selesai! Periksa dan edit data di form.', 'success');
+  } catch (e) {
+    showToast('OCR gagal: ' + e.message, 'error');
+  } finally {
+    document.getElementById('ocr-loading').classList.add('hidden');
+  }
+}
+
+// ===== PARSE OCR TEXT =====
+function parseOCRText(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+  // Try to find No KK (16 digit number)
+  let nokk = '';
+  for (const line of lines) {
+    const m = line.replace(/\s/g, '').match(/(\d{16})/);
+    if (m) { nokk = m[1]; break; }
+  }
+  document.getElementById('inp-nokk').value = nokk;
+
+  // Try to find Kepala Keluarga
+  let kepala = '';
+  for (let i = 0; i < lines.length; i++) {
+    if (/kepala\s*keluarga/i.test(lines[i])) {
+      // Name might be on same line after colon, or next line
+      const after = lines[i].split(/[:]/)[1];
+      if (after && after.trim().length > 2) { kepala = after.trim(); }
+      else if (i + 1 < lines.length) { kepala = lines[i + 1]; }
+      break;
+    }
+  }
+  document.getElementById('inp-kepala').value = kepala;
+
+  // Try to find Alamat
+  let alamat = '';
+  for (let i = 0; i < lines.length; i++) {
+    if (/alamat/i.test(lines[i])) {
+      const after = lines[i].split(/[:]/)[1];
+      if (after && after.trim().length > 2) { alamat = after.trim(); }
+      else if (i + 1 < lines.length) { alamat = lines[i + 1]; }
+      break;
+    }
+  }
+  document.getElementById('inp-alamat').value = alamat;
+
+  // Try to find NIK entries (16-digit numbers that aren't the KK number)
+  const niks = [];
+  const names = [];
+  for (const line of lines) {
+    const digits = line.replace(/\s/g, '').match(/(\d{16})/g);
+    if (digits) {
+      digits.forEach(d => { if (d !== nokk && !niks.includes(d)) niks.push(d); });
+    }
+  }
+
+  // Clear existing anggota and add found ones
+  document.getElementById('anggota-list').innerHTML = '';
+  anggotaCount = 0;
+  if (niks.length > 0) {
+    niks.forEach(nik => {
+      addAnggota();
+      const items = document.querySelectorAll('.anggota-item');
+      const last = items[items.length - 1];
+      last.querySelector('.nik-input').value = nik;
+    });
+  } else {
+    addAnggota();
+  }
+}
+
+// ===== ANGGOTA KELUARGA =====
+function addAnggota() {
+  anggotaCount++;
+  const list = document.getElementById('anggota-list');
+  const div = document.createElement('div');
+  div.className = 'anggota-item bg-slate-800/50 rounded-lg p-3 space-y-2';
+  div.innerHTML = `
+    <div class="flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-400">Anggota #${anggotaCount}</span>
+      <button type="button" onclick="this.closest('.anggota-item').remove()" class="text-red-400 hover:text-red-300 text-xs">Hapus</button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <input class="nik-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none" placeholder="NIK (16 digit)" maxlength="16">
+      <input class="nama-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none" placeholder="Nama Anggota">
+      <select class="jk-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none">
+        <option value="">Jenis Kelamin</option>
+        <option value="Laki-laki">Laki-laki</option>
+        <option value="Perempuan">Perempuan</option>
+      </select>
+    </div>`;
+  list.appendChild(div);
+  lucide.createIcons();
+}
+
+// ===== FORM SUBMIT =====
+function handleSubmit(e) {
+  e.preventDefault();
+  const nokk = document.getElementById('inp-nokk').value.trim();
+  const kepala = document.getElementById('inp-kepala').value.trim();
+  const alamat = document.getElementById('inp-alamat').value.trim();
+
+  // Validate
+  document.getElementById('err-nokk').classList.add('hidden');
+  if (!nokk || !/^\d{16}$/.test(nokk)) {
+    document.getElementById('err-nokk').textContent = 'No KK harus 16 digit angka';
+    document.getElementById('err-nokk').classList.remove('hidden');
+    return;
+  }
+  if (!kepala) { showToast('Nama Kepala Keluarga wajib diisi', 'error'); return; }
+
+  // Check duplicate
+  if (savedData.some(d => d.nokk === nokk)) {
+    showToast('No KK sudah ada! Data duplikat tidak diizinkan.', 'error');
+    return;
+  }
+
+  // Collect anggota
+  const anggotaEls = document.querySelectorAll('.anggota-item');
+  const anggota = [];
+  let nikError = false;
+  anggotaEls.forEach(el => {
+    const nik = el.querySelector('.nik-input').value.trim();
+    const nama = el.querySelector('.nama-input').value.trim();
+    const jk = el.querySelector('.jk-input').value;
+    if (nik && !/^\d{16}$/.test(nik)) { nikError = true; }
+    if (nik || nama) anggota.push({ nik, nama, jk });
+  });
+  if (nikError) { showToast('NIK anggota harus 16 digit angka', 'error'); return; }
+
+  const record = { nokk, kepala, alamat, anggota, waktu: new Date().toLocaleString('id-ID') };
+  savedData.push(record);
+  saveData();
+  renderTable();
+  resetForm();
+  showToast('Data berhasil disimpan!');
+}
+
+function resetForm() {
+  document.getElementById('kk-form').reset();
+  document.getElementById('anggota-list').innerHTML = '';
+  anggotaCount = 0;
+  addAnggota();
+  document.getElementById('err-nokk').classList.add('hidden');
+}
+
+// ===== TABLE RENDER =====
+function renderTable() {
+  const tbody = document.getElementById('data-table');
+  const empty = document.getElementById('empty-state');
+  document.getElementById('data-count').textContent = savedData.length;
+
+  if (savedData.length === 0) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  tbody.innerHTML = '';
+  let rowNum = 0;
+  savedData.forEach((d, idx) => {
+    if (d.anggota.length === 0) {
+      rowNum++;
+      tbody.innerHTML += `<tr class="hover:bg-slate-800/40 transition"><td class="px-3 py-2">${rowNum}</td><td class="px-3 py-2 font-mono">${d.nokk}</td><td class="px-3 py-2">${d.kepala}</td><td class="px-3 py-2">${d.alamat}</td><td class="px-3 py-2">-</td><td class="px-3 py-2">-</td><td class="px-3 py-2">-</td><td class="px-3 py-2 text-slate-400">${d.waktu}</td><td class="px-3 py-2"><button onclick="deleteRow(${idx})" class="text-red-400 hover:text-red-300 text-xs font-semibold">Hapus</button></td></tr>`;
+    } else {
+      d.anggota.forEach(a => {
+        rowNum++;
+        tbody.innerHTML += `<tr class="hover:bg-slate-800/40 transition"><td class="px-3 py-2">${rowNum}</td><td class="px-3 py-2 font-mono">${d.nokk}</td><td class="px-3 py-2">${d.kepala}</td><td class="px-3 py-2">${d.alamat}</td><td class="px-3 py-2 font-mono">${a.nik || '-'}</td><td class="px-3 py-2">${a.nama || '-'}</td><td class="px-3 py-2">${a.jk || '-'}</td><td class="px-3 py-2 text-slate-400">${d.waktu}</td><td class="px-3 py-2"><button onclick="deleteRow(${idx})" class="text-red-400 hover:text-red-300 text-xs font-semibold">Hapus</button></td></tr>`;
+      });
+    }
+  });
+}
+
+function deleteRow(idx) { savedData.splice(idx, 1); saveData(); renderTable(); showToast('Data dihapus', 'info'); }
+
+function clearAllData(btn) {
+  if (savedData.length === 0) return;
+  // Inline confirmation
+  if (btn.dataset.confirm) { savedData = []; saveData(); renderTable(); showToast('Semua data dihapus', 'info'); delete btn.dataset.confirm; btn.textContent = 'Hapus Semua'; return; }
+  btn.dataset.confirm = '1'; btn.textContent = 'Yakin? Klik lagi'; setTimeout(() => { delete btn.dataset.confirm; btn.textContent = 'Hapus Semua'; }, 3000);
+}
+
+// ===== EXCEL EXPORT =====
+function downloadExcel() {
+  if (savedData.length === 0) { showToast('Tidak ada data untuk diunduh', 'error'); return; }
+  const rows = [['No', 'No KK', 'Nama Kepala Keluarga', 'Alamat', 'NIK', 'Nama Anggota', 'Jenis Kelamin', 'Waktu Input']];
+  let num = 0;
+  savedData.forEach(d => {
+    if (d.anggota.length === 0) { num++; rows.push([num, d.nokk, d.kepala, d.alamat, '-', '-', '-', d.waktu]); }
+    else { d.anggota.forEach(a => { num++; rows.push([num, d.nokk, d.kepala, d.alamat, a.nik || '-', a.nama || '-', a.jk || '-', d.waktu]); }); }
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 5 }, { wch: 20 }, { wch: 25 }, { wch: 35 }, { wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 22 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Data KK');
+  XLSX.writeFile(wb, 'Data_Kartu_Keluarga.xlsx');
+  showToast('File Excel berhasil diunduh!');
+}
+
+// ===== INIT =====
+loadData();
+addAnggota();
 lucide.createIcons();
 </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9edb171a40b9fd07',t:'MTc3NjQyNTM0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f03d78fb13eb4cd',t:'MTc3Njg1MjY2Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
